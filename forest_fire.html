@@ -85,7 +85,6 @@ function drawCoords(event) {
     var y = event.clientY - 8;
     var numx = ~~(x / 20);
     var numy = ~~(y / 20);
-    var coords = "X coordinates: " + x + ", Y coordinates: " + y;
 
     if (forest[numx][numy]==type  ){
       context.fillStyle = "white";
@@ -99,8 +98,6 @@ function drawCoords(event) {
     context.beginPath();
     context.fillRect(numx*20+1, numy*20+1, 19, 19);
 
-
-    document.getElementById('drawCoords').innerHTML = coords;
   }
 
 function createArray(length) {
