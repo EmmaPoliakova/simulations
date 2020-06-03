@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .button {
+            background-color: #44a548;
+            color: white;
+            border: none;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            transition-duration: 0.4s;
+            }
+
+        .button:hover {
+                box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+            }
+
+        .slidecontainer {
+            width: 100%;
+                }
+
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 500px;
+            height: 15px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+                }
+
+           .slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                background: #4CAF50;
+                cursor: pointer;
+            }
+    </style>
+</head>
+
+<body onload='draw()'>
+    <div id=container>
+      <canvas id='canvas' width='500' height='500' onclick="drawCoords(event)"></canvas>
+    </div>
+    <p id='drawCoords'></p>
+    <p id="percentage"></p>
+
+    <div id=buttons>
+        <button class="button" id="start" onclick="play()">Start</button>
+        <button class="button" id="clear" onclick="clearCanvas()">Clear</button>
+    </div>
+
+    <div class="slidecontainer">
+        <p>Probability of fire spreading: <span id="probability"></span></p>
+        <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
+    </div>
+
+
+  <script>
+
+    var forest = createArray(25, 25);
+    var game;
+    var p;
+
+    var fire_list = [];
+    var burnt_list = [];
+    var fire;
+    var population = 25*25;
+
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+
+    var slider = document.getElementById("myRange");
+    var output = document.getElementById("probability");
+    output.innerHTML = slider.value;
+    slider.oninput = function() {
+        output.innerHTML = this.value/100;
+        p = this.value/100;
+    }
+
+function draw() {
+      if (canvas.getContext) {
+        var context = canvas.getContext('2d');
+
+        for(var x=0.5;x<500;x+=20) {
+          context.moveTo(x,0);
+          context.lineTo(x,500);
+        }
+
+        for(var y=0.5; y<500; y+=20) {
+          context.moveTo(0,y);
+          context.lineTo(500,y);
+
+      }
+
+      context.strokeStyle='black';
+      context.stroke();
+
+      context.moveTo(0,500);
+      context.lineTo(500,500);
+      context.stroke();
+
+      context.moveTo(500,0);
+      context.lineTo(500,500);
+      context.stroke();
+    }
+
+    for (var i = 0 ; i < 25; i++){
+        for (var j = 0; j < 25; j++) {
+            forest[i][j] = 1;
+            context.beginPath();
+            context.fillStyle = "#44a548";
+            context.fillRect(i*20+1, j*20+1, 19, 19);
+            }
+            }
+
+  }
+
+
+function drawCoords(event) {
+    var x = event.clientX -8;
+    var y = event.clientY - 8;
+    var numx = ~~(x / 20);
+    var numy = ~~(y / 20);
+
+    if (fire){
+        context.fillStyle = "#44a548";
+        context.beginPath();
+        context.fillRect(fire[0]*20+1, fire[1]*20+1, 19, 19);
+        forest[fire[0]][fire[1]] = 1;
+        fire_list = [];
+
+    }
+    fire = [numx, numy];
+    forest[numx][numy] = 2;
+    fire_list.push(fire);
+    context.fillStyle = "#e73206";
+    context.beginPath();
+    context.fillRect(numx*20+1, numy*20+1, 19, 19);
+
+  }
+
+function createArray(length) {
+    var arr = new Array(length || 0),
+        i = length;
+
+    if (arguments.length > 1) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        while(i--) arr[length-1 - i] = createArray.apply(this, args);
+    }
+
+    return arr;
+}
+
+
+function step(){
+
+    var temp_list =[];
+    var x;
+    var fire_start;
+
+    if (fire_list){
+    for (x of burnt_list){
+        i = x[0];
+        j = x[1];
+        context.beginPath();
+        context.fillStyle = "#561c0d";
+        context.fillRect(i*20+1, j*20+1, 19, 19);
+        }
+
+    burnt_list = [];
+
+    for (x of fire_list){
+        i = x[0];
+        j = x[1];
+        if (i-1 > -1 && forest[i-1][j]==1){
+         fire_start = Math.floor(Math.random() * 100);
+            if (fire_start < 100*p){
+                temp_list.push([i-1,j]);
+                forest[i-1][j] = 2;
+                }
+        }
+        if (i+1 < 25 && forest[i+1][j]==1){
+            fire_start = Math.floor(Math.random() * 100);
+            if (fire_start < 100*p){
+                temp_list.push([i+1,j]);
+                forest[i+1][j] = 2;
+                }
+        }
+
+        if (j-1 > -1 && forest[i][j-1]==1){
+            fire_start = Math.floor(Math.random() * 100);
+            if (fire_start < 100*p){
+                temp_list.push([i,j-1]);
+                forest[i][j-1] = 2;
+                }
+        }
+        if (j-1 < 25 && forest[i][j+1]==1){
+            fire_start = Math.floor(Math.random() * 100);
+            if (fire_start < 100*p){
+                temp_list.push([i,j+1]);
+                forest[i][j+1] = 2;
+                }
+        }
+        burnt_list.push(x);
+    }
+
+    population = population - fire_list.length;
+    fire_list = [];
+
+
+    for(x of temp_list){
+        i = x[0];
+        j = x[1];
+        fire_list.push(x);
+        context.beginPath();
+        context.fillStyle = "#e73206";
+        context.fillRect(i*20+1, j*20+1, 19, 19);
+    }
+    }
+    if (burnt_list.length === 0) {
+        clearInterval(game);
+        var perct = 100 - ((population*100)/(25*25));
+        var burnt_forest =  perct.toFixed(2) + "% of forest is burnt";
+        document.getElementById("percentage").innerHTML =  burnt_forest;
+    }
+  }
+
+function createRandomArray(width, height){
+    var result = [];
+    for (var i = 0 ; i < width; i++) {
+        result[i] = [];
+        for (var j = 0; j < height; j++) {
+            result[i][j] = (Math.random() * 5 | 0) + 6;
+        }
+    }
+    return result;
+}
+
+function play(){
+    document.getElementById("percentage").innerHTML = ' ';
+    population = 25*25;
+    game = setInterval(step, 300);
+
+}
+
+
+
+function clearCanvas(){
+    document.getElementById("percentage").innerHTML = ' ';
+    clearInterval(game);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    draw();
+}
+
+
+</script>
+</body>
+</html>

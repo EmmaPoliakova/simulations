@@ -1,43 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
     <style>
+        .column {
+            float: left;
+            width: 50%;
+            }
+
+         .button {
+            background-color: #44a548;
+            color: white;
+            border: none;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            transition-duration: 0.4s;
+            }
+
+         .button:hover {
+                box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+            }
+
+          .slidecontainer {
+            width: 100%;
+                }
+
+          .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 500px;
+            height: 15px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+                }
+
+           .slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                background: #4CAF50;
+                cursor: pointer;
+            }
 
     </style>
 </head>
 
 <body onload='draw()'>
-    <div id=container>
-      <canvas id='canvas' width='500' height='500' onclick="drawCoords(event)"></canvas>
-    </div>
-    <p id='drawCoords'></p>
 
-    <div id=buttons>
-        <button id="start" onclick="play()">Start</button>
-        <button id="stop" onclick="stop()">Stop</button>
-        <button id="clear" onclick="clearCanvas()">Clear</button>
-        <button id="random" onclick="randomSetup()">Random setup </button>
+  <div>
+      <canvas id='canvas' width='501' height='501' onclick="drawCoords(event)"></canvas>
+      <p id='drawCoords'></p>
 
-    </div>
+  </div>
+
+      <div id=buttons>
+        <button class="button" id="start" onclick="play()">Start</button>
+        <button class="button" id="stop" onclick="stop()">Stop</button>
+        <button class="button" id="clear" onclick="clearCanvas()">Clear</button>
+        <button class="button" id="random" onclick="randomSetup()">Random setup </button>
+      </div>
 
     <div class="slidecontainer">
+        <p>Probability of forest fire: <span id="probability"></span></p>
         <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
-        <p>Probability: <span id="probability"></span></p>
     </div>
+
+
+
+<div class="row1">
+  <div class="column">
+      <div id='forest_plot'></div>
+  </div>
+  <div class="column">
+      <div id='fire_plot'></div>
+  </div>
+</div>
 
 
   <script>
 
     var forest = createArray(25, 25);
 
-    var colour = '#44a548';
-    var type = 1;
     var game;
-    var p = 0.25;
+    var p = 0;
+    var population = 0;
+    var counter = 1;
 
     var fire_list = [];
     var burnt_list = [];
     var clear_list = [];
+
+    var iter_count = [];
+    var forest_count = [];
+    var fire_count = [];
+    var burnt_count = [];
 
     var canvas = document.getElementById('canvas');
     var context = canvas.getContext('2d');
@@ -68,12 +134,12 @@ function draw() {
       context.strokeStyle='grey';
       context.stroke();
 
-      context.moveTo(0,500);
-      context.lineTo(500,500);
+      context.moveTo(0,501);
+      context.lineTo(501,501);
       context.stroke();
 
-      context.moveTo(500,0);
-      context.lineTo(500,500);
+      context.moveTo(501,0);
+      context.lineTo(501,501);
       context.stroke();
     }
 
@@ -86,13 +152,14 @@ function drawCoords(event) {
     var numx = ~~(x / 20);
     var numy = ~~(y / 20);
 
-    if (forest[numx][numy]==type  ){
+    if (forest[numx][numy]==1){
       context.fillStyle = "white";
       forest[numx][numy] = 0;
     }
     else {
-      context.fillStyle = colour;
-      forest[numx][numy] = type;
+      context.fillStyle = '#44a548';
+      forest[numx][numy] = 1;
+      population = population + 1;
     }
 
     context.beginPath();
@@ -120,11 +187,16 @@ function step(){
     var temp_list =[];
     var x;
 
+    iter_count.push(counter);
+    counter = counter + 1;
+
      if (forest[i][j] == undefined || forest[i][j] == 0){
         forest[i][j] = 1;
+        population = population + 1;
         context.beginPath();
         context.fillStyle = "#44a548";
         context.fillRect(i*20+1, j*20+1, 19, 19);
+
 
     }
 
@@ -132,11 +204,11 @@ function step(){
         var fire = Math.floor(Math.random() * 100);
         if (fire < 100*p){
             forest[i][j]=2;
+            population = population - 1;
             context.beginPath();
             context.fillStyle = "#e73206";
             context.fillRect(i*20+1, j*20+1, 19, 19);
             fire_list.push([i,j]);
-            console.log(fire_list);
         }
     }
 
@@ -159,7 +231,7 @@ function step(){
         context.fillRect(i*20+1, j*20+1, 19, 19);
         clear_list.push(x);
         }
-
+    burnt_count.push(burnt_list.length);
     burnt_list = [];
 
     for (x of fire_list){
@@ -168,22 +240,27 @@ function step(){
         if (i-1 > -1 && forest[i-1][j]==1){
             temp_list.push([i-1,j]);
             forest[i-1][j] = 2;
+            population = population - 1;
         }
         if (i+1 < 25 && forest[i+1][j]==1){
             temp_list.push([i+1,j]);
             forest[i+1][j] = 2;
+            population = population - 1;
         }
         if (j-1 > -1 && forest[i][j-1]==1){
             temp_list.push([i,j-1]);
             forest[i][j-1] = 2;
+            population = population - 1;
         }
         if (j-1 < 25 && forest[i][j+1]==1){
             temp_list.push([i,j+1]);
             forest[i][j+1] = 2;
+            population = population - 1;
         }
         burnt_list.push(x);
     }
 
+    fire_count.push(fire_list.length);
     fire_list = [];
 
     for(x of temp_list){
@@ -194,20 +271,9 @@ function step(){
         context.fillStyle = "#e73206";
         context.fillRect(i*20+1, j*20+1, 19, 19);
     }
-
+    forest_count.push(population);
 
   }
-
-function createRandomArray(width, height){
-    var result = [];
-    for (var i = 0 ; i < width; i++) {
-        result[i] = [];
-        for (var j = 0; j < height; j++) {
-            result[i][j] = (Math.random() * 5 | 0) + 6;
-        }
-    }
-    return result;
-}
 
 function play(){
     game = setInterval(step, 300);
@@ -216,11 +282,62 @@ function play(){
 
 function stop(){
     clearInterval(game);
+    var trace1 = {
+        x: iter_count,
+        y: forest_count,
+        type: 'scatter',
+        name: 'Forest',
+        line: {
+        color: 'green'}
+    };
+
+    var trace2 = {
+        x: iter_count,
+        y: fire_count,
+        type: 'scatter',
+        name: 'Fire',
+        line: {
+        color: 'red'}
+    };
+
+    var layout = {
+        title: 'Forest population',
+        xaxis: {
+         title: 'Iterations',
+             },
+        yaxis: {
+         title: 'Forest population',
+            }
+        };
+
+    var layout1 = {
+        title: 'Fire',
+        xaxis: {
+         title: 'Iterations',
+             },
+        yaxis: {
+         title: 'Fire',
+            }
+        };
+
+
+
+    Plotly.newPlot('forest_plot', [trace1], layout);
+    Plotly.newPlot('fire_plot', [trace2], layout1);
 }
 
 
 function clearCanvas(){
     clearInterval(game);
+    forest = createArray(25, 25);
+    counter = 1;
+    iter_count = [];
+    forest_count = [];
+    fire_count = [];
+    burnt_count = [];
+    fire_list = [];
+    burnt_list = [];
+    clear_list = [];
     context.clearRect(0, 0, canvas.width, canvas.height);
     draw();
 }
@@ -228,6 +345,15 @@ function clearCanvas(){
 function randomSetup(){
     context.clearRect(0, 0, canvas.width, canvas.height);
     draw();
+    population =0;
+    counter = 1;
+    iter_count = [];
+    forest_count = [];
+    fire_count = [];
+    burnt_count = [];
+    fire_list = [];
+    burnt_list = [];
+    clear_list = [];
     for (var i = 0 ; i < 25; i++){
         for (var j = 0; j < 25; j++) {
             forest[i][j] = Math.floor(Math.random() * 2);
@@ -235,8 +361,10 @@ function randomSetup(){
                 context.beginPath();
                 context.fillStyle = "#44a548";
                 context.fillRect(i*20+1, j*20+1, 19, 19);
+                population = population + 1;
             }
         }
+
     }
 }
 
