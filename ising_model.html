@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+
+    <body onload='draw()'>
+        <div>
+            <canvas id='canvas' width='505' height='505'></canvas>
+        </div>
+
+        <div id=buttons>
+            <button class="button" id="start" onclick="setUp()">Start</button>
+        </div>
+
+    <script>
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var size = 202;
+        var length = 201;
+        var cells = createArray(size, size);
+
+       function draw() {
+            if (canvas.getContext) {
+                var context = canvas.getContext('2d');
+                context.strokeStyle='black';
+                context.stroke();
+
+                context.moveTo(2.5, 502.5);
+                context.lineTo(502.5,502.5);
+                context.stroke();
+
+                context.moveTo(502.5, 2.5);
+                context.lineTo(502.5,502.5);
+                context.stroke();
+
+                context.moveTo(2.5, 2.5);
+                context.lineTo(502.5,2.5);
+                context.stroke();
+
+                context.moveTo(2.5, 2.5);
+                context.lineTo(2.5,502.5);
+                context.stroke();
+                }
+
+            }
+
+        function createArray(length) {
+            var arr = new Array(length || 0),
+            i = length;
+
+            if (arguments.length > 1) {
+                var args = Array.prototype.slice.call(arguments, 1);
+                while(i--) arr[length-1 - i] = createArray.apply(this, args);
+            }
+
+            return arr;
+        }
+
+        function setUp(){
+            var spin;
+            for (var i=0 ;i<size; i+=1) {
+                cells[i][0] = 0;
+                cells[i][length] = 0;
+            }
+
+            for (var j=0 ;i<size; j+=1) {
+                cells[0][j] = 0;
+                cells[length][j] = 0;
+            }
+
+            for (var i=1 ;i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    spin = Math.floor(Math.random() * 2);
+                    if (spin == 0){
+                        cells[i][j] = -1;
+                         context.beginPath();
+                         context.fillStyle = "#40ade8";
+                         context.fillRect(i*2.5, j*2.5, 2.5, 2.5); }
+
+                    else {
+                         cells[i][j] = 1;
+                         context.beginPath();
+                         context.fillStyle = "white";
+                         context.fillRect(i*2.5, j*2.5, 2.5, 2.5);
+                         }
+
+                }
+            }
+        }
+
+    </script>
+    </body>
+</html>
