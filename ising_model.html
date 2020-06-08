@@ -151,13 +151,22 @@
         }
 
         function gameStep(){
-            var i = Math.floor(Math.random() * 100)+1;
-            var j = Math.floor(Math.random() * 100)+1;
-            var E = -1*cells[i][j]*(cells[i-1][j] + cells[i+1][j] + cells[i][j-1] + cells[i][j+1]);
-            x=x+1;
+            var cell_list =[];
+            for (var z=0 ; z<200; z+=1){
+                var i = Math.floor(Math.random() * 100)+1;
+                var j = Math.floor(Math.random() * 100)+1;
+                cell_list.push([i,j]);
+                var E = -1*cells[i][j]*(cells[i-1][j] + cells[i+1][j] + cells[i][j-1] + cells[i][j+1]);
+                if (E>0){
+                    cells[i][j] = -1 * cells[i][j]; }
+                else {
+                    var r = Math.floor(Math.random() * 1000)/1000;
+                    if (r < Math.pow(Math.E, (2*E/T))){
+                        cells[i][j] = -1 * cells[i][j];}
+                }
+            }
 
-            if (E>0){
-                cells[i][j] = -1 * cells[i][j];
+            for (x of cell_list){
                 if (cells[i][j] > 0){
                     context.beginPath();
                     context.fillStyle = "white";
@@ -168,24 +177,9 @@
                     context.fillStyle = "#40ade8";
                     context.fillRect(i*square_size, j*square_size, square_size, square_size);
                 }
-            }
-            else {
 
-                var r = Math.floor(Math.random() * 1000)/1000;
-                if (r < Math.pow(Math.E, (2*E/T))){
-                    cells[i][j] = -1 * cells[i][j];
-                    if (cells[i][j] > 0){
-                        context.beginPath();
-                        context.fillStyle = "white";
-                        context.fillRect(i*square_size, j*square_size, square_size, square_size);
-                    }
-                    else{
-                        context.beginPath();
-                        context.fillStyle = "#40ade8";
-                        context.fillRect(i*square_size, j*square_size, square_size, square_size);
-                    }
-                }
             }
+
         }
 
         function play(){
