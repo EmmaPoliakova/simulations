@@ -50,7 +50,7 @@
 
     <body onload='draw()'>
         <div>
-            <canvas id='canvas' width='510' height='510'></canvas>
+            <canvas id='canvas' width='505' height='505'></canvas>
         </div>
 
         <div id=buttons>
@@ -66,9 +66,9 @@
     <script>
         var canvas = document.getElementById('canvas');
         var context = canvas.getContext('2d');
-        var size = 102;
-        var length = 101;
-        var square_size = 5;
+        var size = 202;
+        var length = 201;
+        var square_size = 2.5;
         var cells = createArray(size, size);
         var game;
         var T = 0;
@@ -79,8 +79,7 @@
         output.innerHTML = slider.value;
         slider.oninput = function() {
             output.innerHTML = this.value/100;
-            T = this.value/100;
-    }
+            T = this.value/100;}
 
        function draw() {
             if (canvas.getContext) {
@@ -151,45 +150,38 @@
         }
 
         function gameStep(){
-            var i = Math.floor(Math.random() * 100)+1;
-            var j = Math.floor(Math.random() * 100)+1;
-            var E = -1*cells[i][j]*(cells[i-1][j] + cells[i+1][j] + cells[i][j-1] + cells[i][j+1]);
-            x=x+1;
 
-            if (E>0){
-                cells[i][j] = -1 * cells[i][j];
-                if (cells[i][j] > 0){
-                    context.beginPath();
-                    context.fillStyle = "white";
-                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
-                }
-                else{
-                    context.beginPath();
-                    context.fillStyle = "#40ade8";
-                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
-                }
-            }
-            else {
-
-                var r = Math.floor(Math.random() * 1000)/1000;
-                if (r < Math.pow(Math.E, (2*E/T))){
-                    cells[i][j] = -1 * cells[i][j];
-                    if (cells[i][j] > 0){
-                        context.beginPath();
-                        context.fillStyle = "white";
-                        context.fillRect(i*square_size, j*square_size, square_size, square_size);
-                    }
-                    else{
-                        context.beginPath();
-                        context.fillStyle = "#40ade8";
-                        context.fillRect(i*square_size, j*square_size, square_size, square_size);
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    var E = -1*cells[i][j]*(cells[i-1][j] + cells[i+1][j] + cells[i][j-1] + cells[i][j+1]);
+                    if (E>0){
+                        cells[i][j] = -1 * cells[i][j];}
+                    else {
+                        var r = Math.floor(Math.random() * 1000)/1000;
+                        if (r < Math.pow(Math.E, (2*E/T))){
+                            cells[i][j] = -1 * cells[i][j];}
+                           }
                     }
                 }
-            }
-        }
+
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+
+                    if (cells[i][j]  == -1){
+                         context.beginPath();
+                         context.fillStyle = "#40ade8";
+                         context.fillRect(i*square_size, j*square_size, square_size, square_size); }
+
+                    else {
+                         context.beginPath();
+                         context.fillStyle = "white";
+                         context.fillRect(i*square_size, j*square_size, square_size, square_size);}
+                        }
+                    }
+                }
 
         function play(){
-            game = setInterval(gameStep, 0.001);
+            game = setInterval(gameStep, 150);
             }
 
         function stop(){
