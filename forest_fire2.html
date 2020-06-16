@@ -1,50 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" type="text/css" href="style.css">
     <style>
-        .button {
+        .column {
+            float: left;
+            width: 50%;
+            }
+
+         .button {
             background-color: #44a548;
-            color: white;
-            border: none;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            transition-duration: 0.4s;
             }
 
-        .button:hover {
-                box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
-            }
-
-        .slidecontainer {
-            width: 100%;
-                }
-
-        .slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 500px;
-            height: 15px;
-            background: #d3d3d3;
-            outline: none;
-            opacity: 0.7;
-            -webkit-transition: .2s;
-            transition: opacity .2s;
-                }
 
            .slider::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 25px;
-                height: 25px;
-                border-radius: 50%;
                 background: #4CAF50;
-                cursor: pointer;
             }
+
+           .slider::-moz-range-thumb {
+               background: #4CAF50;}
     </style>
 </head>
 

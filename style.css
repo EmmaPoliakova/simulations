@@ -41,3 +41,10 @@ button:hover {
     background: #40ade8;
     cursor: pointer;
                 }
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #40ade8;
+  cursor: pointer;
+}
