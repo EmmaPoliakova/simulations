@@ -20,7 +20,7 @@ slidecontainer {
     width: 100%;
     }
 
-.slider {
+slider {
     -webkit-appearance: none;
     appearance: none;
     width: 500px;
@@ -32,7 +32,7 @@ slidecontainer {
     transition: opacity .2s;
     }
 
-.slider::-webkit-slider-thumb {
+slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 25px;
