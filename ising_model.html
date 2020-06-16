@@ -155,10 +155,11 @@
 
         function gameStep(){
             var cell_list =[];
-            for (var z=0 ; z<200; z+=1){
+            for (var z=0 ; z<1000; z+=1){
                 var i = Math.floor(Math.random() * 100)+1;
                 var j = Math.floor(Math.random() * 100)+1;
-                cell_list.push([i,j]);
+                var spin = cells[i][j];
+
                 var E = -1*cells[i][j]*(cells[i-1][j] + cells[i+1][j] + cells[i][j-1] + cells[i][j+1]);
                 if (E>0){
                     cells[i][j] = -1 * cells[i][j]; }
@@ -167,6 +168,8 @@
                     if (r < Math.pow(Math.E, (2*E/T))){
                         cells[i][j] = -1 * cells[i][j];}
                 }
+                if (spin != cells[i][j]){
+                    cell_list.push([i,j]);}
             }
 
             for (x of cell_list){

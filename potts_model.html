@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <style>
+            .button {
+                background-color: #1c1cf0;
+            }
+            .slider::-webkit-slider-thumb {
+                background: #1c1cf0;}
+        </style>
+    </head>
+
+    <body onload='draw()'>
+        <div>
+            <canvas id='canvas' width='510' height='510' ></canvas>
+            <p id='countCells'></p>
+
+        </div>
+
+        <div id=buttons>
+            <button class="button" id="start" onclick="setUp()">Set Up</button>
+            <button class="button" id="play" onclick="play()">Play</button>
+            <button class="button" id="stop" onclick="stop()">Stop</button>
+        </div>
+
+         <div class="slidecontainer">
+            <p>Temperature: <span id="temperature"></span></p>
+            <input type="range" min="0" max="500" value="0" class="slider" id="temp">
+        </div>
+         <div class="slidecontainer">
+            <p>Number of cell categories: <span id="number_of_cells"></span></p>
+            <input type="range" min="3" max="10" value="5" class="slider" id="cat">
+        </div>
+         <div class="slidecontainer">
+            <p>Target size: <span id="size"></span></p>
+            <input type="range" min="100" max="2500" value="100" class="slider" id="t_size">
+        </div>
+
+    <script>
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var size = 102;
+        var length = 101;
+        var square_size = 5;
+        var cells = createArray(size, size);
+        var game;
+        var T = 0.1;
+        var cat = 5;
+        var visited_cells = [];
+        var id_type = { 1:"#f0e61c" , 2:"#f01c1c", 3:"#1c1cf0", 4:"#28f01c", 5:"#f01ced", 6:"#f57517", 7:"#7413b7", 8:"#f290b4", 9:"#1bfcfc", 10:"#0cc344"};
+        var J = 3.5;
+        var lambda = 0.000032;
+        var target_size = 150;
+        var z;
+
+        var slider1 = document.getElementById("temp");
+        var output1 = document.getElementById("temperature");
+        output1.innerHTML = slider1.value;
+        slider1.oninput = function() {
+            output1.innerHTML = this.value/100;
+            T = this.value/100;
+
+    }
+
+        var slider2 = document.getElementById("cat");
+        var output2 = document.getElementById("number_of_cells");
+        output2.innerHTML = slider2.value;
+        slider2.oninput = function() {
+            output2.innerHTML = this.value;
+            cat = this.value;
+            setUp();
+
+    }
+
+        var slider3 = document.getElementById("t_size");
+        var output3 = document.getElementById("size");
+        output3.innerHTML = slider3.value;
+        slider3.oninput = function() {
+            output3.innerHTML = this.value;
+            target_size = this.value;
+    }
+
+
+
+        function draw() {
+            if (canvas.getContext) {
+                var context = canvas.getContext('2d');
+                context.strokeStyle='black';
+
+
+                context.moveTo(square_size, canvas.width-square_size);
+                context.lineTo(canvas.width-square_size, canvas.width-square_size);
+
+
+                context.moveTo(canvas.width-square_size, square_size);
+                context.lineTo(canvas.width-square_size, canvas.width-square_size);
+
+
+                context.moveTo(square_size, square_size);
+                context.lineTo(canvas.width-square_size, square_size);
+
+
+                context.moveTo(square_size, square_size);
+                context.lineTo(square_size,canvas.width-square_size);
+                context.stroke();
+
+                setUp();
+
+            }
+
+        }
+
+        function createArray(length) {
+            var arr = new Array(length || 0),
+            i = length;
+
+            if (arguments.length > 1) {
+                var args = Array.prototype.slice.call(arguments, 1);
+                while(i--) arr[length-1 - i] = createArray.apply(this, args);
+            }
+
+            return arr;
+        }
+
+
+        function setUp(){
+            var spin;
+            for (var i=0 ;i<size; i+=1) {
+                cells[i][0] = 0;
+                cells[i][length] = 0;
+            }
+
+            for (var j=0 ; j<size; j+=1) {
+                cells[0][j] = 0;
+                cells[length][j] = 0;
+            }
+
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    spin = Math.floor(Math.random() * cat) +1;
+                    cells[i][j] = spin;
+                    context.beginPath();
+                    context.fillStyle = id_type[spin];
+                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
+                }
+            }
+        }
+
+
+
+        function findSize(i, j, cells, spin){
+
+            var up = 0;
+            var down = 0;
+            var right = 0;
+            var left = 0;
+            cells[i][j] = 11;
+            visited_cells.push([i,j]);
+
+
+            if (cells[i-1][j] == spin){
+                up = findSize(i-1, j, cells, spin);
+                }
+            if (cells[i+1][j] == spin ){
+                down = findSize(i+1, j, cells, spin);
+                 }
+            if (cells[i][j-1] == spin ){
+                left = findSize(i, j-1, cells, spin);
+                }
+            if (cells[i][j+1] == spin ){
+                right = findSize(i, j+1, cells, spin);
+                }
+
+            return (up + left + right + down + 1);
+    }
+
+        function gameStep(){
+            visited_cells =[];
+            var cells_list = [];
+            var i;
+            var j;
+
+            for (var w = 0; w<200; w+=1) {
+                i = Math.floor(Math.random() * 100)+1;
+                j = Math.floor(Math.random() * 100)+1;
+                cells_list.push([i,j]);
+                }
+
+            for (var w of cells_list){
+                visited_cells =[];
+                i = w[0];
+                j = w[1];
+
+
+                var x = Math.floor(Math.random() * (1 - (-1) + 1)) + (-1);
+                var y = Math.floor(Math.random() * (1 - (-1) + 1)) + (-1);
+
+                if (cells[i][j] != cells[i+x][j+y] && cells[i+x][j+y] != 0 && cells[i][j] != 0){
+                    var current_spin = cells[i+x][j+y];
+                    var spin = cells[i][j];
+                    i = i + x;
+                    j = j + y;
+
+
+                    var H1 = hamiltonian(i,j);
+
+                    cells[i][j] = spin;
+                    var H2 = hamiltonian(i,j);
+                    var deltaH = H2 - H1;
+
+                    if (deltaH < 0){
+                        context.beginPath();
+                        context.fillStyle = id_type[spin];
+                        context.fillRect((i)*square_size, (j)*square_size, square_size, square_size);
+                    }
+
+                    else {
+
+                        var r = Math.floor(Math.random() * 1000)/1000;
+                        if (r < Math.pow( Math.E, (-deltaH / T))){
+                            context.beginPath();
+                            context.fillStyle = id_type[spin];
+                            context.fillRect((i)*square_size, (j)*square_size, square_size, square_size);
+                        }
+
+                        else{
+                        cells[i][j] = current_spin;}
+                    }
+                }
+            }
+        }
+
+        function checkNeighbours(i, j, spin){
+            var up = 0;
+            var down = 0;
+            var left = 0;
+            var right = 0;
+
+
+            if (spin != cells[i-1][j] && cells[i-1][j] != 0){
+                up = 1;
+            }
+
+            if (spin != cells[i+1][j] && cells[i+1][j] != 0){
+                down = 1;
+            }
+
+            if (spin != cells[i][j-1] && cells[i][j-1] != 0){
+                left = 1;
+            }
+
+            if (spin != cells[i][j+1] && cells[i][j+1] != 0){
+                right = 1;
+             }
+             return (up + down + left + right);
+        }
+
+        function hamiltonian(i, j){
+            visited_cells =[];
+            var spin = cells[i][j];
+            var size = findSize(i, j, cells, spin);
+            var neighbour_sum = checkNeighbours(i, j, spin );
+            for (z of visited_cells){
+                        cells[z[0]][z[1]] = spin;
+                    }
+
+            return (J*neighbour_sum + lambda * Math.pow ((size + 1) - target_size, 2));
+
+        }
+
+
+        function play(){
+            game = setInterval(gameStep, 5);
+            }
+
+        function stop(){
+            clearInterval(game);
+        }
+
+
+
+
+    </script>
+    </body>
+</html>
