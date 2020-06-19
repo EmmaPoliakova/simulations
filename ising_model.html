@@ -1,3 +1,5 @@
+<!-- Author: Emma Poliakova 2020 -->
+<!-- Ising model cellular automata simulation using monte carlo principle and html canvas -->
 <!DOCTYPE html>
 <html>
     <head>
@@ -40,6 +42,7 @@
             T = this.value/100;
     }
 
+       // canvas frame and initial set up
        function draw() {
             if (canvas.getContext) {
                 var context = canvas.getContext('2d');
@@ -68,6 +71,7 @@
 
             }
 
+        // create n x n array
         function createArray(length) {
             var arr = new Array(length || 0),
             i = length;
@@ -80,6 +84,7 @@
             return arr;
         }
 
+        // generate and draw cells with +1 or -1 spin
         function setUp(){
             var spin;
             for (var i=0 ;i<size; i+=1) {
@@ -111,9 +116,10 @@
             }
         }
 
+        // monte carlo game step for random cells --> calculate energy and draw
         function gameStep(){
             var cell_list =[];
-            for (var z=0 ; z<1000; z+=1){
+            for (var z=0 ; z<200; z+=1){
                 var i = Math.floor(Math.random() * 100)+1;
                 var j = Math.floor(Math.random() * 100)+1;
                 var spin = cells[i][j];

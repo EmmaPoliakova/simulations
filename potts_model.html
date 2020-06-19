@@ -1,3 +1,5 @@
+<!-- Author: Emma Poliakova 2020 -->
+<!-- Potts model cellular automata simulation using monte carlo principle and html canvas -->
 <!DOCTYPE html>
 <html>
     <head>
@@ -37,7 +39,7 @@
         </div>
          <div class="slidecontainer">
             <p>Target size: <span id="size"></span></p>
-            <input type="range" min="100" max="2500" value="100" class="slider" id="t_size">
+            <input type="range" min="100" max="2500" value="1000" class="slider" id="t_size">
         </div>
 
     <script>
@@ -54,7 +56,7 @@
         var id_type = { 1:"#f0e61c" , 2:"#f01c1c", 3:"#1c1cf0", 4:"#28f01c", 5:"#f01ced", 6:"#f57517", 7:"#7413b7", 8:"#f290b4", 9:"#1bfcfc", 10:"#0cc344"};
         var J = 3.5;
         var lambda = 0.000032;
-        var target_size = 150;
+        var target_size = 1000;
         var z;
 
         var slider1 = document.getElementById("temp");
@@ -85,7 +87,7 @@
     }
 
 
-
+        // canvas frame and initial set up
         function draw() {
             if (canvas.getContext) {
                 var context = canvas.getContext('2d');
@@ -114,6 +116,7 @@
 
         }
 
+        // create n x n array
         function createArray(length) {
             var arr = new Array(length || 0),
             i = length;
@@ -126,7 +129,7 @@
             return arr;
         }
 
-
+        // generate and draw cells with random id from the given range
         function setUp(){
             var spin;
             for (var i=0 ;i<size; i+=1) {
@@ -151,9 +154,8 @@
         }
 
 
-
+        // count all neighbouring cells with the same id
         function findSize(i, j, cells, spin){
-
             var up = 0;
             var down = 0;
             var right = 0;
@@ -178,12 +180,14 @@
             return (up + left + right + down + 1);
     }
 
+        // monte carlo game step for random cells --> calculate energy and draw
         function gameStep(){
             visited_cells =[];
             var cells_list = [];
             var i;
             var j;
 
+            //select random cells to perform the simulation on
             for (var w = 0; w<200; w+=1) {
                 i = Math.floor(Math.random() * 100)+1;
                 j = Math.floor(Math.random() * 100)+1;
@@ -195,13 +199,15 @@
                 i = w[0];
                 j = w[1];
 
-
                 var x = Math.floor(Math.random() * (1 - (-1) + 1)) + (-1);
                 var y = Math.floor(Math.random() * (1 - (-1) + 1)) + (-1);
 
                 if (cells[i][j] != cells[i+x][j+y] && cells[i+x][j+y] != 0 && cells[i][j] != 0){
-                    var current_spin = cells[i+x][j+y];
-                    var spin = cells[i][j];
+
+                    var current_spin = cells[i+x][j+y]; // target cell id
+                    var spin = cells[i][j]; // source cell id
+
+                    //selected target cell index
                     i = i + x;
                     j = j + y;
 
@@ -234,6 +240,7 @@
             }
         }
 
+        // comparing neighbour cell ids to the selected one
         function checkNeighbours(i, j, spin){
             var up = 0;
             var down = 0;
@@ -259,6 +266,7 @@
              return (up + down + left + right);
         }
 
+        // energy calculation for selected cell
         function hamiltonian(i, j){
             visited_cells =[];
             var spin = cells[i][j];

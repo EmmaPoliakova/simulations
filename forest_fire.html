@@ -1,3 +1,5 @@
+<!-- Author: Emma Poliakova 2020 -->
+<!-- Forest fire model cellular automata simulation using monte carlo principle and html canvas -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,8 +8,14 @@
     <style>
         .column {
             float: left;
-            width: 50%;
+            width: 600px;
             }
+
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
+                    }
 
          .button {
             background-color: #44a548;
@@ -26,6 +34,9 @@
 
 <body onload='draw()'>
 
+
+    <div class="row1">
+    <div class="column">
   <div>
       <canvas id='canvas' width='501' height='501' onclick="drawCoords(event)"></canvas>
       <p id='drawCoords'></p>
@@ -43,11 +54,10 @@
         <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
     </div>
 
-    <div class="row1">
+        </div>
+
       <div class="column">
           <div id='forest_plot'></div>
-      </div>
-      <div class="column">
           <div id='fire_plot'></div>
       </div>
     </div>
@@ -81,6 +91,7 @@
         p = this.value/100;
     }
 
+    // canvas frame and initial set up
     function draw() {
       if (canvas.getContext) {
         var context = canvas.getContext('2d');
@@ -108,9 +119,11 @@
       context.stroke();
     }
 
+    drawGraph();
+
   }
 
-
+    // draw forest squares on click
     function drawCoords(event) {
         var x = event.clientX -8;
         var y = event.clientY - 8;
@@ -132,6 +145,7 @@
 
       }
 
+    // create n x n array
     function createArray(length) {
         var arr = new Array(length || 0),
             i = length;
@@ -144,7 +158,7 @@
         return arr;
     }
 
-
+    // monte carlo game step for random cells --> calculate probability of forest fire or draw a new tree
     function step(){
 
         var i = Math.floor(Math.random() * 25);
@@ -237,16 +251,16 @@
             context.fillRect(i*20+1, j*20+1, 19, 19);
         }
         forest_count.push(population);
-
+        Plotly.extendTraces(forest_plot, {y: [[population]]}, [0])
+        Plotly.extendTraces(fire_plot, {y: [[fire_list.length]]}, [0])
       }
 
     function play(){
-        game = setInterval(step, 250);
+        game = setInterval(step, 200);
     }
 
     function stop(){
         clearInterval(game);
-        drawGraph();
     }
 
 
@@ -273,6 +287,13 @@
                 }
             }
         }
+
+
+        forest_count.push(population);
+        drawGraph();
+
+
+
     }
 
     function clearStats() {
@@ -307,6 +328,7 @@
         };
 
         var layout = {
+            height: 350,
             title: 'Forest area',
             xaxis: {
              title: 'Time steps',
@@ -317,6 +339,7 @@
             };
 
         var layout1 = {
+            height: 350,
             title: 'Fire area',
             xaxis: {
              title: 'Time steps',

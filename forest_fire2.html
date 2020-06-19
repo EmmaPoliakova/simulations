@@ -1,3 +1,5 @@
+<!-- Author: Emma Poliakova 2020 -->
+<!-- Forest fire model: select starting point of the fire -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -62,7 +64,7 @@
         p = this.value/100;
     }
 
-function draw() {
+    function draw() {
       if (canvas.getContext) {
         var context = canvas.getContext('2d');
 
@@ -101,142 +103,143 @@ function draw() {
   }
 
 
-function drawCoords(event) {
-    var x = event.clientX -8;
-    var y = event.clientY - 8;
-    var numx = ~~(x / 20);
-    var numy = ~~(y / 20);
+    function drawCoords(event) {
+        var x = event.clientX -8;
+        var y = event.clientY - 8;
+        var numx = ~~(x / 20);
+        var numy = ~~(y / 20);
 
-    if (fire){
-        context.fillStyle = "#44a548";
+        if (fire){
+            context.fillStyle = "#44a548";
+            context.beginPath();
+            context.fillRect(fire[0]*20+1, fire[1]*20+1, 19, 19);
+            forest[fire[0]][fire[1]] = 1;
+            fire_list = [];
+
+        }
+        fire = [numx, numy];
+        forest[numx][numy] = 2;
+        fire_list.push(fire);
+        context.fillStyle = "#e73206";
         context.beginPath();
-        context.fillRect(fire[0]*20+1, fire[1]*20+1, 19, 19);
-        forest[fire[0]][fire[1]] = 1;
+        context.fillRect(numx*20+1, numy*20+1, 19, 19);
+
+      }
+
+    // create n x n array
+    function createArray(length) {
+        var arr = new Array(length || 0),
+            i = length;
+
+        if (arguments.length > 1) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            while(i--) arr[length-1 - i] = createArray.apply(this, args);
+        }
+
+        return arr;
+    }
+
+
+    function step(){
+
+        var temp_list =[];
+        var x;
+        var fire_start;
+
+        if (fire_list){
+        for (x of burnt_list){
+            i = x[0];
+            j = x[1];
+            context.beginPath();
+            context.fillStyle = "#561c0d";
+            context.fillRect(i*20+1, j*20+1, 19, 19);
+            }
+
+        burnt_list = [];
+
+        for (x of fire_list){
+            i = x[0];
+            j = x[1];
+            if (i-1 > -1 && forest[i-1][j]==1){
+             fire_start = Math.floor(Math.random() * 100);
+                if (fire_start < 100*p){
+                    temp_list.push([i-1,j]);
+                    forest[i-1][j] = 2;
+                    }
+            }
+            if (i+1 < 25 && forest[i+1][j]==1){
+                fire_start = Math.floor(Math.random() * 100);
+                if (fire_start < 100*p){
+                    temp_list.push([i+1,j]);
+                    forest[i+1][j] = 2;
+                    }
+            }
+
+            if (j-1 > -1 && forest[i][j-1]==1){
+                fire_start = Math.floor(Math.random() * 100);
+                if (fire_start < 100*p){
+                    temp_list.push([i,j-1]);
+                    forest[i][j-1] = 2;
+                    }
+            }
+            if (j-1 < 25 && forest[i][j+1]==1){
+                fire_start = Math.floor(Math.random() * 100);
+                if (fire_start < 100*p){
+                    temp_list.push([i,j+1]);
+                    forest[i][j+1] = 2;
+                    }
+            }
+            burnt_list.push(x);
+        }
+
+        population = population - fire_list.length;
         fire_list = [];
 
-    }
-    fire = [numx, numy];
-    forest[numx][numy] = 2;
-    fire_list.push(fire);
-    context.fillStyle = "#e73206";
-    context.beginPath();
-    context.fillRect(numx*20+1, numy*20+1, 19, 19);
 
-  }
-
-function createArray(length) {
-    var arr = new Array(length || 0),
-        i = length;
-
-    if (arguments.length > 1) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        while(i--) arr[length-1 - i] = createArray.apply(this, args);
-    }
-
-    return arr;
-}
-
-
-function step(){
-
-    var temp_list =[];
-    var x;
-    var fire_start;
-
-    if (fire_list){
-    for (x of burnt_list){
-        i = x[0];
-        j = x[1];
-        context.beginPath();
-        context.fillStyle = "#561c0d";
-        context.fillRect(i*20+1, j*20+1, 19, 19);
+        for(x of temp_list){
+            i = x[0];
+            j = x[1];
+            fire_list.push(x);
+            context.beginPath();
+            context.fillStyle = "#e73206";
+            context.fillRect(i*20+1, j*20+1, 19, 19);
         }
+        }
+        if (burnt_list.length === 0) {
+            clearInterval(game);
+            var perct = 100 - ((population*100)/(25*25));
+            var burnt_forest =  perct.toFixed(2) + "% of forest is burnt";
+            document.getElementById("percentage").innerHTML =  burnt_forest;
+        }
+      }
 
-    burnt_list = [];
-
-    for (x of fire_list){
-        i = x[0];
-        j = x[1];
-        if (i-1 > -1 && forest[i-1][j]==1){
-         fire_start = Math.floor(Math.random() * 100);
-            if (fire_start < 100*p){
-                temp_list.push([i-1,j]);
-                forest[i-1][j] = 2;
-                }
+    function createRandomArray(width, height){
+        var result = [];
+        for (var i = 0 ; i < width; i++) {
+            result[i] = [];
+            for (var j = 0; j < height; j++) {
+                result[i][j] = (Math.random() * 5 | 0) + 6;
+            }
         }
-        if (i+1 < 25 && forest[i+1][j]==1){
-            fire_start = Math.floor(Math.random() * 100);
-            if (fire_start < 100*p){
-                temp_list.push([i+1,j]);
-                forest[i+1][j] = 2;
-                }
-        }
-
-        if (j-1 > -1 && forest[i][j-1]==1){
-            fire_start = Math.floor(Math.random() * 100);
-            if (fire_start < 100*p){
-                temp_list.push([i,j-1]);
-                forest[i][j-1] = 2;
-                }
-        }
-        if (j-1 < 25 && forest[i][j+1]==1){
-            fire_start = Math.floor(Math.random() * 100);
-            if (fire_start < 100*p){
-                temp_list.push([i,j+1]);
-                forest[i][j+1] = 2;
-                }
-        }
-        burnt_list.push(x);
+        return result;
     }
 
-    population = population - fire_list.length;
-    fire_list = [];
+    function play(){
+        document.getElementById("percentage").innerHTML = ' ';
+        population = 25*25;
+        game = setInterval(step, 300);
+
+    }
 
 
-    for(x of temp_list){
-        i = x[0];
-        j = x[1];
-        fire_list.push(x);
-        context.beginPath();
-        context.fillStyle = "#e73206";
-        context.fillRect(i*20+1, j*20+1, 19, 19);
-    }
-    }
-    if (burnt_list.length === 0) {
+    function clearCanvas(){
+        document.getElementById("percentage").innerHTML = ' ';
         clearInterval(game);
-        var perct = 100 - ((population*100)/(25*25));
-        var burnt_forest =  perct.toFixed(2) + "% of forest is burnt";
-        document.getElementById("percentage").innerHTML =  burnt_forest;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        draw();
     }
-  }
-
-function createRandomArray(width, height){
-    var result = [];
-    for (var i = 0 ; i < width; i++) {
-        result[i] = [];
-        for (var j = 0; j < height; j++) {
-            result[i][j] = (Math.random() * 5 | 0) + 6;
-        }
-    }
-    return result;
-}
-
-function play(){
-    document.getElementById("percentage").innerHTML = ' ';
-    population = 25*25;
-    game = setInterval(step, 300);
-
-}
 
 
-function clearCanvas(){
-    document.getElementById("percentage").innerHTML = ' ';
-    clearInterval(game);
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    draw();
-}
-
-
-</script>
-</body>
+    </script>
+    </body>
 </html>

@@ -1,3 +1,5 @@
+<!-- Author: Emma Poliakova 2020 -->
+<!-- Ising model cellular automata simulation using html canvas -->
 <!DOCTYPE html>
 <html>
     <head>
@@ -40,6 +42,7 @@
             output.innerHTML = this.value/100;
             T = this.value/100;}
 
+       // canvas frame and initial set up
        function draw() {
             if (canvas.getContext) {
                 var context = canvas.getContext('2d');
@@ -67,6 +70,7 @@
 
             }
 
+        // create n x n array
         function createArray(length) {
             var arr = new Array(length || 0),
             i = length;
@@ -79,6 +83,7 @@
             return arr;
         }
 
+        // generate and draw cells with +1 or -1 spin
         function setUp(){
             var spin;
             for (var i=0 ;i<size; i+=1) {
@@ -110,6 +115,7 @@
             }
         }
 
+        // calculate energy for all cells in the array and draw new spins
         function gameStep(){
 
             for (var i=1 ; i<length; i+=1) {
