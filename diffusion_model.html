@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <style>
+            .column {
+                float: left;
+                width: 600px;
+            }
+
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
+                    }
+
+        </style>
+    </head>
+
+    <body onload='draw()'>
+      <div class="row1">
+        <div class="column">
+        <div>
+            <canvas id='canvas' width='501.6' height='501.6' onclick="drawCoords(event)"></canvas>
+        </div>
+
+        <div id=buttons>
+            <button class="button" id="start" onclick="setUp()">Set Up</button>
+            <button class="button" id="play" onclick="play()">Play</button>
+            <button class="button" id="stop" onclick="stop()">Stop</button>
+        </div>
+            <div class="slidecontainer">
+            <p>Diffusion A: <span id="dA"></span></p>
+            <input type="range" min="0" max="1000" value="1" class="slider" id="diffusionA">
+
+        </div>
+            <div class="slidecontainer">
+            <p>Diffusion B: <span id="dB"></span></p>
+            <input type="range" min="0" max="1000" value="0.5" class="slider" id="diffusionB">
+
+        </div>
+            </div>
+          <div class="column">
+          </div>
+      </div>
+
+    <script>
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var size = 152;
+        var length = 151;
+        var square_size = 3.3;
+        var cells = createArray(size, size);
+        var newCells = createArray(size, size);
+        var game;
+        var dA=1.0;
+        var dB=0.5;
+        var f=0.055;
+        var k=0.062;
+
+        var slider1 = document.getElementById("diffusionA");
+        var output1 = document.getElementById("dA");
+        output1.innerHTML = slider1.value;
+        slider1.oninput = function() {
+            output1.innerHTML = this.value/100;
+            dA = this.value/100;}
+
+        var slider2 = document.getElementById("diffusionB");
+        var output2 = document.getElementById("dB");
+        output2.innerHTML = slider2.value;
+        slider2.oninput = function() {
+            output2.innerHTML = this.value/100;
+            dB = this.value/100;}
+
+        // canvas frame and initial set up
+       function draw() {
+            if (canvas.getContext) {
+                var context = canvas.getContext('2d');
+                context.strokeStyle='black';
+
+
+                context.moveTo(square_size, canvas.width-square_size);
+                context.lineTo(canvas.width-square_size, canvas.width-square_size);
+
+
+                context.moveTo(canvas.width-square_size, square_size);
+                context.lineTo(canvas.width-square_size, canvas.width-square_size);
+
+
+                context.moveTo(square_size, square_size);
+                context.lineTo(canvas.width-square_size, square_size);
+
+
+                context.moveTo(square_size, square_size);
+                context.lineTo(square_size,canvas.width-square_size);
+                context.stroke();
+
+                setUp();
+                }
+       }
+
+    function drawCoords(event) {
+        var x = event.clientX -8;
+        var y = event.clientY -8;
+        var numx = ~~(x / square_size);
+        var numy = ~~(y / square_size);
+
+        if (cells[numx][numy].a==1){
+          cells[numx][numy] = {a:0 , b:1};
+        }
+        else {
+           cells[numx][numy] = {a:1 , b:0};
+        }
+
+        var r = Math.floor(cells[numx][numy].b*255);
+        var g = 20;
+        var b = Math.floor(cells[numx][numy].a*255);
+        var color = "rgb(" + r + "," + g + "," + b + ")";
+        context.fillStyle = color;
+        context.beginPath();
+        context.fillRect(numx*square_size, numy*square_size, square_size, square_size);
+
+      }
+
+    // create n x n array
+    function createArray(length) {
+        var arr = new Array(length || 0),
+            i = length;
+
+        if (arguments.length > 1) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            while(i--) arr[length-1 - i] = createArray.apply(this, args);
+        }
+
+        return arr;
+    }
+    // create n x n array
+    function createArray(length) {
+        var arr = new Array(length || 0),
+            i = length;
+
+        if (arguments.length > 1) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            while(i--) arr[length-1 - i] = createArray.apply(this, args);
+        }
+
+        return arr;
+    }
+
+        // create n x n array
+        function createArray(length) {
+            var arr = new Array(length || 0),
+            i = length;
+
+            if (arguments.length > 1) {
+                var args = Array.prototype.slice.call(arguments, 1);
+                while(i--) arr[length-1 - i] = createArray.apply(this, args);
+            }
+
+            return arr;
+        }
+
+        function setUp(){
+            for (var i=0 ;i<size; i+=1) {
+                    cells[i][0] = {a: 0, b: 0};
+                    cells[i][length] = {a: 0, b: 0};
+                }
+
+                for (var j=0 ; j<size; j+=1) {
+                    cells[0][j] = {a: 0, b: 0};
+                    cells[length][j] = {a: 0, b: 0};
+                }
+
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    cells[i][j] = {a: 1, b: 0};
+                }
+            }
+
+            for (var i=0 ;i<size; i+=1) {
+                for (var j=0 ; j<size; j+=1) {
+                newCells[i][j] = {a: 0, b: 0};
+                }
+             }
+
+            for (var i=47 ; i<50; i+=1) {
+                for (var j=47 ;j<100; j+=1) {
+                    cells[i][j] = {a: 0 , b: 1};
+                }
+             }
+
+
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    var r = Math.floor(cells[i][j].b*255);
+                    var g = 20;
+                    var b = Math.floor(cells[i][j].a*255);
+                    var color = "rgb(" + r + "," + g + "," + b + ")";
+                    context.beginPath();
+                    context.fillStyle = color;
+                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
+                 }
+            }
+        }
+
+        function step(){
+        for (var z=0 ; z<5; z+=1) {
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    var a = cells[i][j].a;
+                    var b = cells[i][j].b;
+                    newCells[i][j].a = a + (dA * laplacian('a', i, j) - a*b*b + f*(1-a));
+                    newCells[i][j].b = b + (dB * laplacian('b', i, j) + a*b*b - (k + f)*b);
+                }
+            }
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    cells[i][j] = newCells[i][j];
+                }
+            }
+        }
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    cells[i][j] = newCells[i][j];
+                    var r = Math.floor(cells[i][j].b*255);
+                    var g = 20;
+                    var b = Math.floor(cells[i][j].a*255);
+                    var color = "rgb(" + r + "," + g + "," + b + ")";
+                    context.beginPath();
+                    context.fillStyle = color;
+                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
+                }
+             }
+        }
+
+        function laplacian (x, i, j){
+            var sum = cells[i][j][x] * (-1) + cells[i-1][j][x]*0.2 + cells[i+1][j][x]*0.2 + cells[i][j-1][x]*0.2 + cells[i][j+1][x]*0.2 +
+                      cells[i-1][j-1][x] *0.05 + cells[i-1][j+1][x]*0.05 + cells[i+1][j-1][x]*0.05 + cells[i+1][j+1][x]*0.05;
+            return(sum);
+        }
+
+        function play(){
+            game = setInterval(step, 0.0001);
+            }
+
+        function stop(){
+            clearInterval(game);
+        }
+
+
+    </script>
+    </body>
+</html>
