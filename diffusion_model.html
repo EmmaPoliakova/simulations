@@ -38,10 +38,10 @@
                 <label >Suggested values for default setup:</label>
                 <select id="suggested_values" onchange="newValues()">
                     <option value="">--select--</option>
-                    <option value="1">DA=1.0, DB=0.5, f=0.055, k=0.062</option>
-                    <option value="2">DA=0.35, DB=1.07, f=0.055, k=0.062</option>
-                    <option value="3">DA=0.32, DB=0.1, f=0.055, k=0.062</option>
-                    <option value="4">DA=1.0, DB=0.5, f=0.0367, k=0.0649</option>
+                    <option value="1">DA=1.0, DB=0.5, f=0.055, r=0.062</option>
+                    <option value="2">DA=0.35, DB=1.07, f=0.055, r=0.062</option>
+                    <option value="3">DA=0.32, DB=0.1, f=0.055, r=0.062</option>
+                    <option value="4">DA=1.0, DB=0.5, f=0.02, r=0.058</option>
                 </select>
             </div>
 
@@ -61,7 +61,7 @@
             </div>
 
             <div class="slidecontainer">
-                <p>Kill rate: <span id="k"></span></p>
+                <p>Removal rate: <span id="k"></span></p>
                 <input type="range" min="0" max="10000" value="0" class="slider" id="killrate">
             </div>
 
@@ -97,7 +97,7 @@
         slider1.oninput = function() {
             output1.innerHTML = this.value/100;
             dA = this.value/100;
-            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Removal rate: " + k;
             document.getElementById('currentStats').innerHTML = current_stats;}
 
         var slider2 = document.getElementById("diffusionB");
@@ -106,7 +106,7 @@
         slider2.oninput = function() {
             output2.innerHTML = this.value/100;
             dB = this.value/100;
-            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Removal rate: " + k;
             document.getElementById('currentStats').innerHTML = current_stats;}
 
         var slider3 = document.getElementById("feedrate");
@@ -115,7 +115,7 @@
         slider3.oninput = function() {
             output3.innerHTML = this.value/10000;
             f = this.value/10000;
-            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Removal rate: " + k;
             document.getElementById('currentStats').innerHTML = current_stats;}
 
         var slider4 = document.getElementById("killrate");
@@ -124,7 +124,7 @@
         slider4.oninput = function() {
             output4.innerHTML = this.value/10000;
             k = this.value/10000;
-            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Removal rate: " + k;
             document.getElementById('currentStats').innerHTML = current_stats;}
 
         function newValues(){
@@ -150,11 +150,11 @@
             if (selected==4){
                 dA = 1.0;
                 dB = 0.5;
-                f = 0.0367;
-                k = 0.0649;
+                f = 0.02;
+                k = 0.058;
             }
 
-            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Removal rate: " + k;
             document.getElementById('currentStats').innerHTML = current_stats;
         }
 
@@ -190,7 +190,7 @@
                     }
                  }
                 newFrame();
-                current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+                current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Removal rate: " + k;
                 document.getElementById('currentStats').innerHTML = current_stats;
                 }
        }
@@ -208,7 +208,7 @@
            cells[numx][numy] = {a:1 , b:0};
         }
 
-        var r = Math.floor(cells[numx][numy].b*255);
+        var r = Math.floor(255- cells[numx][numy].b*255);
         var g = 20;
         var b = Math.floor(cells[numx][numy].a*255);
         var color = "rgb(" + r + "," + g + "," + b + ")";
