@@ -1,3 +1,5 @@
+<!-- Author: Emma Poliakova 2020 -->
+<!-- Reaction diffusion model cellular automata simulation-->
 <!DOCTYPE html>
 <html>
     <head>
@@ -6,7 +8,7 @@
         <style>
             .column {
                 float: left;
-                width: 600px;
+                width: 530px;
             }
 
             .row:after {
@@ -14,35 +16,63 @@
                 display: table;
                 clear: both;
                     }
-
         </style>
     </head>
 
     <body onload='draw()'>
       <div class="row1">
         <div class="column">
-        <div>
-            <canvas id='canvas' width='501.6' height='501.6' onclick="drawCoords(event)"></canvas>
-        </div>
-
-        <div id=buttons>
-            <button class="button" id="start" onclick="setUp()">Set Up</button>
-            <button class="button" id="play" onclick="play()">Play</button>
-            <button class="button" id="stop" onclick="stop()">Stop</button>
-        </div>
-            <div class="slidecontainer">
-            <p>Diffusion A: <span id="dA"></span></p>
-            <input type="range" min="0" max="1000" value="1" class="slider" id="diffusionA">
-
-        </div>
-            <div class="slidecontainer">
-            <p>Diffusion B: <span id="dB"></span></p>
-            <input type="range" min="0" max="1000" value="0.5" class="slider" id="diffusionB">
-
-        </div>
+            <div>
+                <canvas id='canvas' width='501.6' height='501.6' onclick="drawCoords(event)"></canvas>
             </div>
-          <div class="column">
-          </div>
+
+            <div>
+                <p>Current settings:</p>
+                <p id='currentStats'></p>
+            </div>
+        </div>
+
+
+        <div class="column">
+            <div class="custom_select">
+                <label >Suggested values for default setup:</label>
+                <select id="suggested_values" onchange="newValues()">
+                    <option value="">--select--</option>
+                    <option value="1">DA=1.0, DB=0.5, f=0.055, k=0.062</option>
+                    <option value="2">DA=0.35, DB=1.07, f=0.055, k=0.062</option>
+                    <option value="3">DA=0.32, DB=0.1, f=0.055, k=0.062</option>
+                    <option value="4">DA=1.0, DB=0.5, f=0.0367, k=0.0649</option>
+                </select>
+            </div>
+
+            <div class="slidecontainer">
+                <p>Diffusion rate A: <span id="dA"></span></p>
+                <input type="range" min="0" max="500" value="0" class="slider" id="diffusionA">
+            </div>
+
+            <div class="slidecontainer">
+                <p>Diffusion rate B: <span id="dB"></span></p>
+                <input type="range" min="0" max="500" value="0" class="slider" id="diffusionB">
+            </div>
+
+            <div class="slidecontainer">
+                <p>Feed rate: <span id="f"></span></p>
+            <input type="range" min="0" max="10000" value="0" class="slider" id="feedrate">
+            </div>
+
+            <div class="slidecontainer">
+                <p>Kill rate: <span id="k"></span></p>
+                <input type="range" min="0" max="10000" value="0" class="slider" id="killrate">
+            </div>
+
+            <div id=buttons>
+                <button class="button" id="play" onclick="play()">Play</button>
+                <button class="button" id="stop" onclick="stop()">Stop</button>
+                <button class="button" id="clear" onclick="setUp()">Clear</button>
+                <button class="button" id="start" onclick="randomSetup()">Random setup</button>
+            </div>
+
+        </div>
       </div>
 
     <script>
@@ -56,22 +86,78 @@
         var game;
         var dA=1.0;
         var dB=0.5;
-        var f=0.055;
+        var f=0.0545;
         var k=0.062;
+        var current_stats;
+
 
         var slider1 = document.getElementById("diffusionA");
         var output1 = document.getElementById("dA");
         output1.innerHTML = slider1.value;
         slider1.oninput = function() {
             output1.innerHTML = this.value/100;
-            dA = this.value/100;}
+            dA = this.value/100;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            document.getElementById('currentStats').innerHTML = current_stats;}
 
         var slider2 = document.getElementById("diffusionB");
         var output2 = document.getElementById("dB");
         output2.innerHTML = slider2.value;
         slider2.oninput = function() {
             output2.innerHTML = this.value/100;
-            dB = this.value/100;}
+            dB = this.value/100;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            document.getElementById('currentStats').innerHTML = current_stats;}
+
+        var slider3 = document.getElementById("feedrate");
+        var output3 = document.getElementById("f");
+        output3.innerHTML = slider3.value;
+        slider3.oninput = function() {
+            output3.innerHTML = this.value/10000;
+            f = this.value/10000;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            document.getElementById('currentStats').innerHTML = current_stats;}
+
+        var slider4 = document.getElementById("killrate");
+        var output4 = document.getElementById("k");
+        output4.innerHTML = slider4.value;
+        slider4.oninput = function() {
+            output4.innerHTML = this.value/10000;
+            k = this.value/10000;
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            document.getElementById('currentStats').innerHTML = current_stats;}
+
+        function newValues(){
+            var selected = document.getElementById("suggested_values").value;
+            if (selected==1){
+                dA = 1.0;
+                dB = 0.5;
+                f = 0.055;
+                k = 0.062;
+            }
+            if (selected==2){
+                dA = 0.35;
+                dB = 1.07;
+                f = 0.055;
+                k = 0.062;
+            }
+            if (selected==3){
+                dA = 0.32;
+                dB = 0.1;
+                f = 0.055;
+                k = 0.062;
+            }
+            if (selected==4){
+                dA = 1.0;
+                dB = 0.5;
+                f = 0.0367;
+                k = 0.0649;
+            }
+
+            current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+            document.getElementById('currentStats').innerHTML = current_stats;
+        }
+
 
         // canvas frame and initial set up
        function draw() {
@@ -96,7 +182,16 @@
                 context.lineTo(square_size,canvas.width-square_size);
                 context.stroke();
 
+
                 setUp();
+                for (var i = 70 ; i<80; i+=1) {
+                    for (var j = 70 ;j<80; j+=1) {
+                        cells[i][j] = {a: 0 , b: 1};
+                    }
+                 }
+                newFrame();
+                current_stats = "Diffusion rate A: " + dA + ", Diffusion rate B: " + dB + ", Feed rate: " + f + ", Kill rate: " + k;
+                document.getElementById('currentStats').innerHTML = current_stats;
                 }
        }
 
@@ -163,13 +258,13 @@
 
         function setUp(){
             for (var i=0 ;i<size; i+=1) {
-                    cells[i][0] = {a: 0, b: 0};
-                    cells[i][length] = {a: 0, b: 0};
+                 cells[i][0] = {a: 0, b: 0};
+                 cells[i][length] = {a: 0, b: 0};
                 }
 
-                for (var j=0 ; j<size; j+=1) {
-                    cells[0][j] = {a: 0, b: 0};
-                    cells[length][j] = {a: 0, b: 0};
+            for (var j=0 ; j<size; j+=1) {
+                 cells[0][j] = {a: 0, b: 0};
+                 cells[length][j] = {a: 0, b: 0};
                 }
 
             for (var i=1 ; i<length; i+=1) {
@@ -184,55 +279,95 @@
                 }
              }
 
-            for (var i=47 ; i<50; i+=1) {
-                for (var j=47 ;j<100; j+=1) {
-                    cells[i][j] = {a: 0 , b: 1};
-                }
+            newFrame();
+        }
+
+        function randomSetup(){
+            setUp();
+            var x = Math.floor(Math.random() * 3);
+            if ( x == 0 ) {
+                for (var i = 70 ; i<80; i+=1) {
+                    for (var j = 70 ;j<80; j+=1) {
+                        cells[i][j] = {a: 0 , b: 1};
+                    }
+                 }
              }
 
-
-            for (var i=1 ; i<length; i+=1) {
-                for (var j=1 ;j<length; j+=1) {
-                    var r = Math.floor(cells[i][j].b*255);
-                    var g = 20;
-                    var b = Math.floor(cells[i][j].a*255);
-                    var color = "rgb(" + r + "," + g + "," + b + ")";
-                    context.beginPath();
-                    context.fillStyle = color;
-                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
+            if ( x == 1 ) {
+                for (var i = 55 ; i<95; i+=1) {
+                    for (var j = 70 ;j<80; j+=1) {
+                        cells[i][j] = {a: 0 , b: 1};
+                    }
                  }
-            }
+             }
+
+            if ( x == 2 ) {
+                for (var z = 0 ; z<4; z+=1){
+                    if (z == 0){
+                        var k = 10;
+                        var l = 10;
+                    }
+
+                    if (z ==1){
+                        var k = 130;
+                        var l = 10;
+                    }
+
+                    if (z == 2){
+                        var k = 10;
+                        var l = 130;
+                    }
+
+                    if (z ==3){
+                        var k = 130;
+                        var l = 130;
+                    }
+                    for (var i = 0; i<10; i+=1) {
+                        for (var j = 0 ;j<10; j+=1) {
+                            cells[i+k][j+l] = {a: 0 , b: 1};
+                        }
+                     }
+                 }
+             }
+
+             newFrame();
         }
 
         function step(){
-        for (var z=0 ; z<5; z+=1) {
-            for (var i=1 ; i<length; i+=1) {
-                for (var j=1 ;j<length; j+=1) {
-                    var a = cells[i][j].a;
-                    var b = cells[i][j].b;
-                    newCells[i][j].a = a + (dA * laplacian('a', i, j) - a*b*b + f*(1-a));
-                    newCells[i][j].b = b + (dB * laplacian('b', i, j) + a*b*b - (k + f)*b);
+            for (var z=0 ; z<5; z+=1) {
+                for (var i=1 ; i<length; i+=1) {
+                    for (var j=1 ;j<length; j+=1) {
+                        var a = cells[i][j].a;
+                        var b = cells[i][j].b;
+                        newCells[i][j].a = a + (dA * laplacian('a', i, j) - a*b*b + f*(1-a));
+                        newCells[i][j].b = b + (dB * laplacian('b', i, j) + a*b*b - (k + f)*b);
+                    }
+                }
+                for (var i=1 ; i<length; i+=1) {
+                    for (var j=1 ;j<length; j+=1) {
+                        cells[i][j] = newCells[i][j];
+                    }
                 }
             }
-            for (var i=1 ; i<length; i+=1) {
-                for (var j=1 ;j<length; j+=1) {
-                    cells[i][j] = newCells[i][j];
-                }
-            }
+
+            newFrame();
+
         }
+
+        function newFrame(){
             for (var i=1 ; i<length; i+=1) {
                 for (var j=1 ;j<length; j+=1) {
-                    cells[i][j] = newCells[i][j];
                     var r = Math.floor(cells[i][j].b*255);
                     var g = 20;
                     var b = Math.floor(cells[i][j].a*255);
-                    var color = "rgb(" + r + "," + g + "," + b + ")";
+                    var color = "rgb(" + r + "," + g + "," + b +")";
                     context.beginPath();
                     context.fillStyle = color;
                     context.fillRect(i*square_size, j*square_size, square_size, square_size);
                 }
              }
         }
+
 
         function laplacian (x, i, j){
             var sum = cells[i][j][x] * (-1) + cells[i-1][j][x]*0.2 + cells[i+1][j][x]*0.2 + cells[i][j-1][x]*0.2 + cells[i][j+1][x]*0.2 +
