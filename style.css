@@ -23,7 +23,7 @@ button:hover {
 .slider {
     -webkit-appearance: none;
     appearance: none;
-    width: 500px;
+    width: 400px;
     height: 15px;
     background: #d3d3d3;
     outline: none;
@@ -53,7 +53,7 @@ button:hover {
   background-color: #40ade8;
   color: white;
   padding: 12px;
-  width: 250px;
+  width: 150px;
   border: none;
   font-size: 15px;
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);

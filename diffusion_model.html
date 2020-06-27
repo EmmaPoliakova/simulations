@@ -69,7 +69,6 @@
                 <button class="button" id="play" onclick="play()">Play</button>
                 <button class="button" id="stop" onclick="stop()">Stop</button>
                 <button class="button" id="clear" onclick="setUp()">Clear</button>
-                <button class="button" id="start" onclick="randomSetup()">Random setup</button>
             </div>
 
         </div>
@@ -194,27 +193,26 @@
                 document.getElementById('currentStats').innerHTML = current_stats;
                 }
        }
-
+    // draw 10x10 square on the canvas
     function drawCoords(event) {
         var x = event.clientX -8;
         var y = event.clientY -8;
         var numx = ~~(x / square_size);
         var numy = ~~(y / square_size);
 
-        if (cells[numx][numy].a==1){
-          cells[numx][numy] = {a:0 , b:1};
-        }
-        else {
-           cells[numx][numy] = {a:1 , b:0};
-        }
-
-        var r = Math.floor(255- cells[numx][numy].b*255);
-        var g = 20;
-        var b = Math.floor(cells[numx][numy].a*255);
+        cells[numx][numy] = {a: 0, b: 1};
+        var r = Math.floor(cells[numx][numy].b*255);
+        var g = 0;
+        var b = 255 - Math.floor(cells[numx][numy].a*255);
         var color = "rgb(" + r + "," + g + "," + b + ")";
         context.fillStyle = color;
-        context.beginPath();
-        context.fillRect(numx*square_size, numy*square_size, square_size, square_size);
+        for (var i = 0; i<10; i+=1){
+            for (var j = 0; j<10; j+=1){
+               context.beginPath();
+               cells[numx+i][numy+j] = {a: 0, b: 1};
+               context.fillRect((numx+i)*square_size, (numy+j)*square_size, square_size, square_size);
+            }
+        }
 
       }
 
@@ -282,67 +280,29 @@
             newFrame();
         }
 
-        function randomSetup(){
-            setUp();
-            var x = Math.floor(Math.random() * 3);
-            if ( x == 0 ) {
-                for (var i = 70 ; i<80; i+=1) {
-                    for (var j = 70 ;j<80; j+=1) {
-                        cells[i][j] = {a: 0 , b: 1};
-                    }
-                 }
-             }
-
-            if ( x == 1 ) {
-                for (var i = 55 ; i<95; i+=1) {
-                    for (var j = 70 ;j<80; j+=1) {
-                        cells[i][j] = {a: 0 , b: 1};
-                    }
-                 }
-             }
-
-            if ( x == 2 ) {
-                for (var z = 0 ; z<4; z+=1){
-                    if (z == 0){
-                        var k = 10;
-                        var l = 10;
-                    }
-
-                    if (z ==1){
-                        var k = 130;
-                        var l = 10;
-                    }
-
-                    if (z == 2){
-                        var k = 10;
-                        var l = 130;
-                    }
-
-                    if (z ==3){
-                        var k = 130;
-                        var l = 130;
-                    }
-                    for (var i = 0; i<10; i+=1) {
-                        for (var j = 0 ;j<10; j+=1) {
-                            cells[i+k][j+l] = {a: 0 , b: 1};
-                        }
-                     }
-                 }
-             }
-
-             newFrame();
-        }
-
+        /**
+         The step function calculates 5 time steps for the entire grid.
+         The loop iterates over every cell in the grid and calculates its new a and b values.
+         New values are stored in a new grid which is later copied to original one.
+        */
         function step(){
             for (var z=0 ; z<5; z+=1) {
                 for (var i=1 ; i<length; i+=1) {
                     for (var j=1 ;j<length; j+=1) {
                         var a = cells[i][j].a;
                         var b = cells[i][j].b;
+
+                        /** The new values are calculated with the following formulae:
+                        dA , dB = diffusion rates for a and b
+                        f = feed rate
+                        k = kill/ removal rate
+                        */
                         newCells[i][j].a = a + (dA * laplacian('a', i, j) - a*b*b + f*(1-a));
                         newCells[i][j].b = b + (dB * laplacian('b', i, j) + a*b*b - (k + f)*b);
                     }
                 }
+
+                // copy the new values from the new grid to the original one
                 for (var i=1 ; i<length; i+=1) {
                     for (var j=1 ;j<length; j+=1) {
                         cells[i][j] = newCells[i][j];
@@ -354,12 +314,13 @@
 
         }
 
+        // draw new grid on the canvas
         function newFrame(){
             for (var i=1 ; i<length; i+=1) {
                 for (var j=1 ;j<length; j+=1) {
                     var r = Math.floor(cells[i][j].b*255);
-                    var g = 20;
-                    var b = Math.floor(cells[i][j].a*255);
+                    var g = 0;
+                    var b = 255 - Math.floor(cells[i][j].a*255);
                     var color = "rgb(" + r + "," + g + "," + b +")";
                     context.beginPath();
                     context.fillStyle = color;
@@ -368,10 +329,22 @@
              }
         }
 
+        /**
+             The laplacian function is sum of the neighbouring cells multiplied by corresponding values.
+             The selected cell is in the middle and a or b value is multiplied by -1. Direct neighbours
+             have 0.3 coefficient and diagonal neighbours are multiplied by 0.05. The function returns their sum.
 
+               i-1, j-1 | i-1, j | i-1, j+1                 0.05 | 0.3 | 0.05
+               ---------|--------|---------                 -----|-----|-----
+                i, j-1  |  i, j  |  i, j+1       =====>      0.3 | -1  | 0.3
+               ---------|--------|---------                 -----|-----|-----
+               i+1, j-1 | i+1, j | i+1, j+1                 0.05 | 0.3 | 0.05
+
+        */
         function laplacian (x, i, j){
-            var sum = cells[i][j][x] * (-1) + cells[i-1][j][x]*0.2 + cells[i+1][j][x]*0.2 + cells[i][j-1][x]*0.2 + cells[i][j+1][x]*0.2 +
-                      cells[i-1][j-1][x] *0.05 + cells[i-1][j+1][x]*0.05 + cells[i+1][j-1][x]*0.05 + cells[i+1][j+1][x]*0.05;
+            var sum = cells[i][j][x] * (-1) + cells[(i-1)][j][x]*0.2 + cells[(i+1)][j][x]*0.2 +
+                      cells[i][(j-1)][x]*0.2 + cells[i][(j+1)][x]*0.2 + cells[(i-1)][(j-1)][x] *0.05 +
+                      cells[(i-1)][(j+1)][x]*0.05 + cells[(i+1)][(j-1)][x]*0.05 + cells[(i+1)][(j+1)][x]*0.05;
             return(sum);
         }
 
