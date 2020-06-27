@@ -13,34 +13,50 @@
 
             .slider::-moz-range-thumb {
                 background: #1c1cf0;}
+
+            .column {
+                float: left;
+                width: 530px;
+            }
+
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
+                    }
         </style>
     </head>
 
     <body onload='draw()'>
-        <div>
-            <canvas id='canvas' width='510' height='510' ></canvas>
-            <p id='countCells'></p>
+        <div class="row1">
+            <div class="column">
+                <div>
+                    <canvas id='canvas' width='510' height='510' ></canvas>
+                    <p id='countCells'></p>
 
-        </div>
+                </div>
+            </div>
 
-        <div id=buttons>
-            <button class="button" id="start" onclick="setUp()">Set Up</button>
-            <button class="button" id="play" onclick="play()">Play</button>
-            <button class="button" id="stop" onclick="stop()">Stop</button>
-        </div>
+            <div class="column">
+                <div class="slidecontainer">
+                    <p>Temperature: <span id="temperature"></span></p>
+                    <input type="range" min="0" max="500" value="0" class="slider" id="temp">
+                </div>
+                 <div class="slidecontainer">
+                    <p>Number of cell categories: <span id="number_of_cells"></span></p>
+                    <input type="range" min="3" max="10" value="5" class="slider" id="cat">
+                </div>
+                 <div class="slidecontainer">
+                    <p>Target size: <span id="size"></span></p>
+                    <input type="range" min="100" max="2500" value="1000" class="slider" id="t_size">
+                </div>
 
-         <div class="slidecontainer">
-            <p>Temperature: <span id="temperature"></span></p>
-            <input type="range" min="0" max="500" value="0" class="slider" id="temp">
-        </div>
-         <div class="slidecontainer">
-            <p>Number of cell categories: <span id="number_of_cells"></span></p>
-            <input type="range" min="3" max="10" value="5" class="slider" id="cat">
-        </div>
-         <div class="slidecontainer">
-            <p>Target size: <span id="size"></span></p>
-            <input type="range" min="100" max="2500" value="1000" class="slider" id="t_size">
-        </div>
+                <div id=buttons>
+                    <button class="button" id="start" onclick="setUp()">Set Up</button>
+                    <button class="button" id="play" onclick="play()">Play</button>
+                    <button class="button" id="stop" onclick="stop()">Stop</button>
+                </div>
+            </div>
 
     <script>
         var canvas = document.getElementById('canvas');
@@ -180,7 +196,7 @@
             return (up + left + right + down + 1);
     }
 
-        // monte carlo game step for random cells --> calculate energy and draw
+        // function game steps performs 200 monte carlo steps before drawing the new frame on the screen
         function gameStep(){
             visited_cells =[];
             var cells_list = [];
@@ -196,12 +212,16 @@
 
             for (var w of cells_list){
                 visited_cells =[];
+
+                //selected source cell
                 i = w[0];
                 j = w[1];
 
+                //selected random target cell
                 var x = Math.floor(Math.random() * (1 - (-1) + 1)) + (-1);
                 var y = Math.floor(Math.random() * (1 - (-1) + 1)) + (-1);
 
+                // if target cell has different value as source cell and it is not 0 then calculate the new energy value
                 if (cells[i][j] != cells[i+x][j+y] && cells[i+x][j+y] != 0 && cells[i][j] != 0){
 
                     var current_spin = cells[i+x][j+y]; // target cell id
@@ -211,6 +231,11 @@
                     i = i + x;
                     j = j + y;
 
+                    /** Calculate the hamiltonian for the target cell with its current id.
+                        Then assign the source cell id to the target cell and calculate new hamiltonian.
+                        If their difference results in lowering the energy accept this change. Else calculate
+                        the probability of accepting this change even if it adds energy.
+                    */
 
                     var H1 = hamiltonian(i,j);
 
@@ -226,21 +251,21 @@
 
                     else {
 
-                        var r = Math.floor(Math.random() * 1000)/1000;
-                        if (r < Math.pow( Math.E, (-deltaH / T))){
+                        var r = Math.floor(Math.random() * 1000)/1000; // random r value to 3 decimal places
+                        if (r < Math.pow( Math.E, (-deltaH / T))){ // check if r is smaller than e^(-deltaH/T)
                             context.beginPath();
                             context.fillStyle = id_type[spin];
                             context.fillRect((i)*square_size, (j)*square_size, square_size, square_size);
                         }
 
                         else{
-                        cells[i][j] = current_spin;}
+                            cells[i][j] = current_spin;} // if the probability test does not pass, the target cell keeps its original value
                     }
                 }
             }
         }
 
-        // comparing neighbour cell ids to the selected one
+        // Sum of the direct target cell neighbours with different ids.
         function checkNeighbours(i, j, spin){
             var up = 0;
             var down = 0;
@@ -266,7 +291,7 @@
              return (up + down + left + right);
         }
 
-        // energy calculation for selected cell
+        // energy calculation for the target cell
         function hamiltonian(i, j){
             visited_cells =[];
             var spin = cells[i][j];
