@@ -3,12 +3,25 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
         <link rel="stylesheet" type="text/css" href="style.css">
         <style>
+            .column {
+                float: left;
+                width: 515px;
+            }
+
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
+                    }
         </style>
     </head>
 
     <body onload='draw()'>
+    <div class="row1">
+        <div class="column">
         <div>
             <canvas id='canvas' width='505' height='505'></canvas>
         </div>
@@ -23,6 +36,13 @@
             <p>Temperature: <span id="temperature"></span></p>
             <input type="range" min="0" max="500" value="0" class="slider" id="myRange">
         </div>
+        </div>
+
+        <div class="column">
+              <div id='ising_plot'></div>
+              <div id='ising_plot2'></div>
+          </div>
+    </div>
 
     <script>
         var canvas = document.getElementById('canvas');
@@ -34,6 +54,10 @@
         var game;
         var T = 0;
         var x = 0;
+        var spin_min = 0;
+        var spin_plus = 0;
+        var counter = 1;
+        var iter_count = [];
 
         var slider = document.getElementById("myRange");
         var output = document.getElementById("temperature");
@@ -66,6 +90,7 @@
                 context.stroke();
 
                 setUp();
+                drawGraph();
                 }
 
             }
@@ -100,12 +125,14 @@
                 for (var j=1 ;j<length; j+=1) {
                     spin = Math.floor(Math.random() * 2);
                     if (spin == 0){
+                         spin_min = spin_min + 1;
                          cells[i][j] = -1;
                          context.beginPath();
                          context.fillStyle = "#40ade8";
                          context.fillRect(i*square_size, j*square_size, square_size, square_size); }
 
                     else {
+                         spin_plus = spin_plus + 1;
                          cells[i][j] = 1;
                          context.beginPath();
                          context.fillStyle = "white";
@@ -113,11 +140,15 @@
                          }
                 }
             }
+            drawGraph(spin_plus, spin_min);
         }
 
         // calculate energy for all cells in the array and draw new spins
         function gameStep(){
-
+            spin_plus = 0;
+            spin_min = 0;
+            iter_count.push(counter);
+            counter = counter + 1;
             for (var i=1 ; i<length; i+=1) {
                 for (var j=1 ;j<length; j+=1) {
                     var E = -1*cells[i][j]*(cells[i-1][j] + cells[i+1][j] + cells[i][j-1] + cells[i][j+1]);
@@ -135,17 +166,80 @@
                 for (var j=1 ;j<length; j+=1) {
 
                     if (cells[i][j]  == -1){
+                         spin_min = spin_min + 1;
                          context.beginPath();
                          context.fillStyle = "#40ade8";
                          context.fillRect(i*square_size, j*square_size, square_size, square_size); }
 
                     else {
+                         spin_plus = spin_plus + 1;
                          context.beginPath();
                          context.fillStyle = "white";
                          context.fillRect(i*square_size, j*square_size, square_size, square_size);}
                         }
                     }
+
+             //Plotly.extendTraces(ising_plot, {x : [[spin_plus]], y: [[spin_min]]}, [0])
+             Plotly.extendTraces(ising_plot2, {y: [[spin_plus], [spin_min]]}, [0, 1])
+
+        }
+
+        function drawGraph(x, y){
+            /**var trace1 = {
+                x: [x],
+                y: [y],
+                type: 'scatter',
+                name: 'Spin',
+                line: {
+                color: 'blue'}
+            };
+
+            var layout = {
+            height: 350,
+            width: 430,
+            title: 'Ratio of the two states',
+            xaxis: {
+             title: 'Positive state +1',
+                 },
+            yaxis: {
+             title: 'Negative state -1',
                 }
+                };
+                */
+
+            var trace2 = {
+                x: iter_count,
+                y: [y],
+                type: 'scatter',
+                name: 'State +1',
+                line: {
+                color: '#adadad'}
+            };
+
+            var trace3 = {
+                x: iter_count,
+                y: [y],
+                type: 'scatter',
+                name: 'State -1',
+                line: {
+                color: 'blue'}
+            };
+
+            var layout2 = {
+            height: 350,
+            width: 430,
+            title: 'Comparison of the two states',
+            xaxis: {
+             title: 'Time steps',
+                 },
+            yaxis: {
+             title: 'Number of cells',
+                }
+                };
+
+              //Plotly.newPlot('ising_plot', [trace1], layout);
+              Plotly.newPlot('ising_plot2', [trace2, trace3], layout2);
+            };
 
         function play(){
             game = setInterval(gameStep, 150);

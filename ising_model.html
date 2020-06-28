@@ -8,7 +8,7 @@
         <style>
             .column {
                 float: left;
-                width: 600px;
+                width: 515px;
             }
 
             .row:after {
@@ -42,6 +42,7 @@
             </div>
           <div class="column">
               <div id='ising_plot'></div>
+              <div id='ising_plot2'></div>
           </div>
       </div>
 
@@ -57,6 +58,8 @@
         var x = 0;
         var spin_min = 0;
         var spin_plus = 0;
+        var counter = 1;
+        var iter_count = [];
 
         var slider = document.getElementById("myRange");
         var output = document.getElementById("temperature");
@@ -147,11 +150,19 @@
         // monte carlo game step for random cells --> calculate energy and draw
         function gameStep(){
             var cell_list =[];
+            iter_count.push(counter);
+            counter = counter + 1;
+
+            //performs 200 monte carlo steps per frame
             for (var z=0 ; z<200; z+=1){
                 var i = Math.floor(Math.random() * 100)+1;
                 var j = Math.floor(Math.random() * 100)+1;
                 var spin = cells[i][j];
 
+                /** Energy calculation ==> current cell spin * -1 * sum of all direct neighbour spins.
+                    Flips the spin if E>0 and perform the probability test if E<0. Random number r must be smaller
+                    than e^(2E/T) where T is the given temperature.
+                */
                 var E = -1*cells[i][j]*(cells[i-1][j] + cells[i+1][j] + cells[i][j-1] + cells[i][j+1]);
                 if (E>0){
                     cells[i][j] = -1 * cells[i][j]; }
@@ -162,30 +173,28 @@
                 }
                 if (spin != cells[i][j]){
                     cell_list.push([i,j]);}
-            }
+                }
 
             for (x of cell_list){
                 if (cells[i][j] > 0){
                     context.beginPath();
                     context.fillStyle = "white";
-                    spin_plus = spin_plus + 1;
-                    spin_min = spin_min - 1;
                     context.fillRect(i*square_size, j*square_size, square_size, square_size);
                 }
                 else{
                     context.beginPath();
                     context.fillStyle = "#40ade8";
-                    spin_plus = spin_plus - 1;
-                    spin_min = spin_min + 1;
                     context.fillRect(i*square_size, j*square_size, square_size, square_size);
                 }
 
             }
-            Plotly.extendTraces(ising_plot, {x : [[spin_plus]], y: [[spin_min]]}, [0])
+            countSpins();
+            //Plotly.extendTraces(ising_plot, {x : [[spin_plus]], y: [[spin_min]]}, [0])
+            Plotly.extendTraces(ising_plot2, {y: [[spin_plus], [spin_min]]}, [0, 1])
         }
 
          function drawGraph(x, y){
-            var trace1 = {
+           /** var trace1 = {
                 x: [x],
                 y: [y],
                 type: 'scatter',
@@ -196,6 +205,7 @@
 
             var layout = {
             height: 350,
+            width: 430,
             title: ' ',
             xaxis: {
              title: ' ',
@@ -204,15 +214,62 @@
              title: ' ',
                 }
                 };
+                */
 
-              Plotly.newPlot('ising_plot', [trace1], layout);
+            var trace2 = {
+                x: iter_count,
+                y: [y],
+                type: 'scatter',
+                name: 'State +1',
+                line: {
+                color: '#adadad'}
             };
 
-        function play(){
+            var trace3 = {
+                x: iter_count,
+                y: [y],
+                type: 'scatter',
+                name: 'State -1',
+                line: {
+                color: 'blue'}
+            };
+
+            var layout2 = {
+            height: 350,
+            width: 430,
+            title: 'Comparison of the two states',
+            xaxis: {
+             title: 'Time steps',
+                 },
+            yaxis: {
+             title: 'Number of cells',
+                }
+                };
+
+              //Plotly.newPlot('ising_plot', [trace1], layout);
+              Plotly.newPlot('ising_plot2', [trace2, trace3], layout2);
+            };
+
+        function countSpins(){
+            spin_min = 0;
+            spin_plus = 0;
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                if (cells[i][j]==-1){
+                    spin_min = spin_min + 1;
+                }
+                else {
+                    spin_plus = spin_plus + 1;
+                }
+                }
+            }
+        }
+
+       function play(){
             game = setInterval(gameStep, 0.001);
             }
 
-        function stop(){
+       function stop(){
             clearInterval(game);
         }
 
