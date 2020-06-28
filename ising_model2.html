@@ -30,7 +30,7 @@
             <button class="button" id="start" onclick="setUp()">Set Up</button>
             <button class="button" id="play" onclick="play()">Play</button>
             <button class="button" id="stop" onclick="stop()">Stop</button>
-            <button class="button" id="step" onclick="gameStep()">Step</button>
+            <button class="button" id="step" onclick="step()">Step</button>
         </div>
         <div class="slidecontainer">
             <p>Temperature: <span id="temperature"></span></p>
@@ -144,7 +144,7 @@
         }
 
         // calculate energy for all cells in the array and draw new spins
-        function gameStep(){
+        function step(){
             spin_plus = 0;
             spin_min = 0;
             iter_count.push(counter);
@@ -242,7 +242,7 @@
             };
 
         function play(){
-            game = setInterval(gameStep, 150);
+            game = setInterval(step, 150);
             }
 
         function stop(){

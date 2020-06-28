@@ -148,7 +148,7 @@
         }
 
         // monte carlo game step for random cells --> calculate energy and draw
-        function gameStep(){
+        function step(){
             var cell_list =[];
             iter_count.push(counter);
             counter = counter + 1;
@@ -266,7 +266,7 @@
         }
 
        function play(){
-            game = setInterval(gameStep, 0.001);
+            game = setInterval(step, 0.001);
             }
 
        function stop(){
