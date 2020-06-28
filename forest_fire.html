@@ -8,7 +8,7 @@
     <style>
         .column {
             float: left;
-            width: 600px;
+            width: 515px;
             }
 
             .row:after {
@@ -161,6 +161,7 @@
     // monte carlo game step for random cells --> calculate probability of forest fire or draw a new tree
     function step(){
 
+        //select random cell in the forest
         var i = Math.floor(Math.random() * 25);
         var j = Math.floor(Math.random() * 25);
         var temp_list =[];
@@ -169,16 +170,16 @@
         iter_count.push(counter);
         counter = counter + 1;
 
+        // if the selected cell is empty draw new forest
          if (forest[i][j] == undefined || forest[i][j] == 0){
             forest[i][j] = 1;
             population = population + 1;
             context.beginPath();
             context.fillStyle = "#44a548";
             context.fillRect(i*20+1, j*20+1, 19, 19);
-
-
         }
 
+        // if there already is forest check the probability for starting the fire
         else if (forest[i][j]==1){
             var fire = Math.floor(Math.random() * 100);
             if (fire < 100*p){
@@ -187,10 +188,11 @@
                 context.beginPath();
                 context.fillStyle = "#e73206";
                 context.fillRect(i*20+1, j*20+1, 19, 19);
-                fire_list.push([i,j]);
+                fire_list.push([i,j]); // store the current burning squares in a list then check their neighbours to spread the fire
             }
         }
 
+        // fire cells will turn into burned ones next step and after that they will be cleared. New forest can grow on the clear cells.
         for (x of clear_list){
             i = x[0];
             j = x[1];
@@ -292,8 +294,6 @@
         forest_count.push(population);
         drawGraph();
 
-
-
     }
 
     function clearStats() {
@@ -329,6 +329,7 @@
 
         var layout = {
             height: 350,
+            width: 430,
             title: 'Forest area',
             xaxis: {
              title: 'Time steps',
@@ -340,6 +341,7 @@
 
         var layout1 = {
             height: 350,
+            width: 430,
             title: 'Fire area',
             xaxis: {
              title: 'Time steps',
