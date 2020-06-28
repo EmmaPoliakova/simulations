@@ -196,8 +196,8 @@
             return (up + left + right + down + 1);
     }
 
-        // function game steps performs 200 monte carlo steps before drawing the new frame on the screen
-        function gameStep(){
+        // function step performs 200 monte carlo steps before drawing the new frame on the screen
+        function step(){
             visited_cells =[];
             var cells_list = [];
             var i;
@@ -272,7 +272,6 @@
             var left = 0;
             var right = 0;
 
-
             if (spin != cells[i-1][j] && cells[i-1][j] != 0){
                 up = 1;
             }
@@ -307,7 +306,7 @@
 
 
         function play(){
-            game = setInterval(gameStep, 5);
+            game = setInterval(step, 5);
             }
 
         function stop(){
