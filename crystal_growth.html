@@ -32,16 +32,21 @@
         <div>
             <canvas id='canvas' width='505' height='505'></canvas>
         </div>
-
-        <div id=buttons>
-            <button class="button" id="play" onclick="play()">Play</button>
-            <button class="button" id="stop" onclick="stop()">Stop</button>
-            <button class="button" id="reset" onclick="setNuclei()">Reset</button>
-        </div>
+             <div>
+                <p>Current value of the selected cell in the phase field:</p>
+                <p id='phaseField'></p>
+            </div>
 
             </div>
 
            <div class="column">
+
+               <div id=buttons>
+                    <button class="button" id="play" onclick="play()">Play</button>
+                    <button class="button" id="stop" onclick="stop()">Stop</button>
+                    <button class="button" id="reset" onclick="setNuclei()">Reset</button>
+                </div>
+
             <div class="custom_select">
                 <label > Latent  heat:</label>
                 <select id="k_values" onchange="kValues()">
@@ -82,7 +87,7 @@
     var epsilonbar = 0.01;
     var k = 2.0;
     var delta = 0.02;
-    var anisotropy = 8.0 ;
+    var anisotropy = 6.0 ;
     var alpha = 0.9;
     var gamma = 10.0;
     var teq = 1.0 ;
@@ -136,6 +141,12 @@
                 anisotropy = 6.0;
                 }
         }
+
+        canvas.onmousemove = function (e) {
+            var x = ~~((event.clientX - 1)/2.5);
+            var y = ~~((event.clientY - 1)/2.5);
+            document.getElementById('phaseField').innerHTML = phi[x][y];
+    }
 
 
  // create n x n array
