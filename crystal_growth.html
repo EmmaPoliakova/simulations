@@ -143,8 +143,8 @@
         }
 
         canvas.onmousemove = function (e) {
-            var x = ~~((event.clientX - 1)/2.5);
-            var y = ~~((event.clientY - 1)/2.5);
+            var x = ~~(event.clientX /2.5);
+            var y = ~~(event.clientY /2.5);
             document.getElementById('phaseField').innerHTML = phi[x][y];
     }
 
