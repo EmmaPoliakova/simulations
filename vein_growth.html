@@ -1,0 +1,267 @@
+<!-- Author: Emma Poliakova 2020 -->
+<!-- Potts model cellular automata simulation using monte carlo principle and html canvas -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <style>
+            .button {
+                background-color: #1c1cf0;
+            }
+            .slider::-webkit-slider-thumb {
+                background: #1c1cf0;}
+
+            .slider::-moz-range-thumb {
+                background: #1c1cf0;}
+
+            .column {
+                float: left;
+                width: 530px;
+            }
+
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
+                    }
+        </style>
+    </head>
+
+    <body onload='draw()'>
+        <div class="row1">
+            <div class="column">
+                <div>
+                    <canvas id='canvas' width='505' height='505' ></canvas>
+
+                </div>
+            </div>
+
+            <div class="column">
+
+                <div id=buttons>
+                    <button class="button" id="start" onclick="setUp()">Set Up</button>
+                    <button class="button" id="play" onclick="play()">Play</button>
+                    <button class="button" id="stop" onclick="stop()">Stop</button>
+                </div>
+            </div>
+
+    <script>
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var size = 202;
+        var length = 201;
+        var square_size = 2.5;
+        var cells = createArray(size, size);
+        var game;
+        var id_type = {0:'black', 1:"#f0e61c" , 2:"#f01c1c", 3:"#1c1cf0", 4:"#28f01c", 5:"#f01ced", 6:"#f57517", 7:"#7413b7", 8:"#f290b4", 9:"#1bfcfc", 10:"#0cc344"};
+        var T = 0.5;
+        var v = 0.8;
+        var noise = 0.5;
+        var phi_new;
+        var phi_old;
+
+
+        // canvas frame and initial set up
+        function draw() {
+            if (canvas.getContext) {
+                var context = canvas.getContext('2d');
+                context.strokeStyle='black';
+
+                context.moveTo(square_size, canvas.width-square_size);
+                context.lineTo(canvas.width-square_size, canvas.width-square_size);
+
+                context.moveTo(canvas.width-square_size, square_size);
+                context.lineTo(canvas.width-square_size, canvas.width-square_size);
+
+                context.moveTo(square_size, square_size);
+                context.lineTo(canvas.width-square_size, square_size);
+
+                context.moveTo(square_size, square_size);
+                context.lineTo(square_size,canvas.width-square_size);
+                context.stroke();
+
+                setUp();
+            }
+        }
+
+        // create n x n array
+        function createArray(length) {
+            var arr = new Array(length || 0),
+            i = length;
+
+            if (arguments.length > 1) {
+                var args = Array.prototype.slice.call(arguments, 1);
+                while(i--) arr[length-1 - i] = createArray.apply(this, args);
+            }
+            return arr;
+        }
+
+
+        function setUp(){
+            for (var i=0 ;i<size; i+=1) {
+                for (var j=0 ; j<size; j+=1) {
+                    var angle = Math.floor(Math.random() * 91);
+                    cells[i][j] = {'id' : 0, 'angle' : angle} ;
+                }
+            }
+
+            var angle = [10, 75, 15, 48, 6, 50, 80, 10, 86, 41,5];
+            var start_y = 1;
+            for (var i=1 ; i<11; i+=1) {
+                drawCircle(201, start_y, 20, i, angle[i]);
+                start_y = start_y + 20;
+                }
+
+
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    context.beginPath();
+                    if (cells[i][j]['id'] !=0) {
+                        var r = Math.floor(cells[i][j]['angle']+50);
+                        var g = 10;
+                        var b = Math.floor(cells[i][j]['angle']+30);
+                        var color = "rgb(" + r + "," + g + "," + b +")";
+                        context.fillStyle = color;
+                    }
+                    else {
+                        context.fillStyle = 'black';
+                    }
+                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
+                }
+            }
+        }
+
+        function drawCircle(start_x, start_y, radius, id, angle){
+            var row_length = [0, 0, 0, -2, -2, -4, -4, -6, -6, -10];
+            var coord_add = [0, 0, 0, 1, 0, 1, 0, 1, 0, 2];
+            var coord_x = start_x;
+            var coord_y = start_y;
+            for (var i=0 ; i<radius/2; i+=1) {
+                coord_x = coord_x - 1;
+                coord_y = coord_y + coord_add[i];
+                for (var j=0 ; j <radius + row_length[i]; j+=1) {
+                    cells[coord_y + j][coord_x]['id'] = id;
+                    cells[coord_y + j][coord_x]['angle'] = angle;
+                }
+
+            }
+        }
+
+        function probability(i,j){
+            phi_new = Math.floor(Math.random() * 91);
+            phi_old = cells[i][j]['angle'];
+            var Emis_old = mismatchEnergy(i,j);
+            cells[i][j]['angle'] = phi_new;
+            var Emis_new = mismatchEnergy(i,j);
+
+            var p = (1 - Math.pow( Math.E,((Emis_new - Emis_old)/T + noise)));
+            if (p > 0){
+                cells[i][j]['angle'] = phi_new;
+                grow(i,j);
+            }
+            else{
+                cells[i][j]['angle'] = phi_old;
+                }
+        }
+
+        function mismatchEnergy(x,y){
+            var sum = 0;
+            var deltaR =0.5;
+            for (var k=-1 ; k<2; k+=1) {
+                for (var m=-1 ;m<2; m+=1) {
+                    var phi = cells[x+k][y+m]['angle'];
+                    var ni = crystallineOrientation(x+k,y+m);
+                    Emis = (1/deltaR) * (1/2) * (v*v) * (ni*ni) * (Math.sin(Math.abs(phi_new - phi)*(Math.PI / 180)) - Math.sin(Math.abs(phi_old - phi)*(Math.PI / 180)));
+                    sum = sum + Emis;
+                }
+            }
+            return(sum);
+        }
+
+        function crystallineOrientation(i,j){
+                var jp = j+1;
+                var jm = j-1;
+                var ip = i+1;
+                var im = i-1;
+
+                if (im<=0){
+                    im = length-1;}
+                else if (ip>=length){
+                    ip = 1;}
+
+                if (jm<=0){
+                    jm = length-1;}
+                else if (jp>=length){
+                    jp = 1;}
+
+            var sum = Math.cos(cells[ip][j]['angle']*(Math.PI / 180)) +
+                        + Math.cos(cells[im][j]['angle']*(Math.PI / 180)) +
+                        + Math.cos(cells[i][jp]['angle']*(Math.PI / 180)) +
+                        + Math.cos(cells[i][jm]['angle']*(Math.PI / 180)) +
+                        + Math.cos(cells[ip][jp]['angle']*(Math.PI / 180)) +
+                        + Math.cos(cells[ip][jm]['angle']*(Math.PI / 180)) +
+                        + Math.cos(cells[im][jp]['angle']*(Math.PI / 180)) +
+                        + Math.cos(cells[im][jm]['angle']*(Math.PI / 180));
+
+             return((sum/8)/Math.cos(cells[i][j]['angle']));
+        }
+
+        function grow(i,j){
+            if (cells[i][j]['id']==0) {
+                if (cells[i+1][j]['id']!=0 && (cells[i+1][j]['angle']-3 < cells[i][j]['angle'] && cells[i+1][j]['angle']+3 > cells[i][j]['angle'])){
+                    cells[i][j]['id'] = cells[i+1][j]['id'];
+                    cells[i][j]['angle'] = cells[i+1][j]['angle'];}
+                else if (cells[i+1][j]['id']!=0 && (cells[i+1][j]['angle']-3 < cells[i][j]['angle'] && cells[i+1][j]['angle']+3 > cells[i][j]['angle'])){
+                    cells[i][j]['id'] = cells[i+1][j]['id'];
+                    cells[i][j]['angle'] = cells[i+1][j]['angle'];}
+                else if (cells[i][j-1]['id']!=0 && (cells[i][j-1]['angle']-3 < cells[i][j]['angle'] && cells[i][j-1]['angle']+3 > cells[i][j]['angle'])){
+                    cells[i][j]['id'] = cells[i][j-1]['id'];
+                    cells[i][j]['angle'] = cells[i][j-1]['angle'];}
+                else if (cells[i][j+1]['id']!=0 && (cells[i][j+1]['angle']-3 < cells[i][j]['angle'] && cells[i][j+1]['angle']+3 > cells[i][j]['angle'])){
+                    cells[i][j]['id'] = cells[i][j+1]['id'];
+                    cells[i][j]['angle'] = cells[i][j+1]['angle'];}
+                 }
+        }
+
+        function newFrame(){
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    if (cells[i][j]['id'] !=0) {
+                        var r = Math.floor(cells[i][j]['angle']+60);
+                        var g = 10;
+                        var b = Math.floor(cells[i][j]['angle']+30);
+                        var color = "rgb(" + r + "," + g + "," + b +")";
+                        context.fillStyle = color;
+                    }
+                    else {
+                        context.fillStyle = 'black';
+                    }
+                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
+                }
+             }
+       }
+
+       function step(){
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    if (cells[i][j]['id']==0){
+                    probability(i,j);}
+                }
+            }
+            newFrame();
+       }
+
+        function play(){
+            game = setInterval(step, 5);
+            }
+
+        function stop(){
+            clearInterval(game);
+        }
+
+
+
+
+    </script>
+    </body>
+</html>
