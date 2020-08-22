@@ -31,7 +31,7 @@
         <div class="row1">
             <div class="column">
                 <div>
-                    <canvas id='canvas' width='505' height='505' ></canvas>
+                    <canvas id='canvas' width='508' height='508' ></canvas>
 
                 </div>
             </div>
@@ -48,9 +48,9 @@
     <script>
         var canvas = document.getElementById('canvas');
         var context = canvas.getContext('2d');
-        var size = 202;
-        var length = 201;
-        var square_size = 2.5;
+        var size = 152;
+        var length = 151;
+        var square_size = 3.34;
         var cells = createArray(size, size);
         var game;
         var id_type = {0:'black', 1:"#f0e61c" , 2:"#f01c1c", 3:"#1c1cf0", 4:"#28f01c", 5:"#f01ced", 6:"#f57517", 7:"#7413b7", 8:"#f290b4", 9:"#1bfcfc", 10:"#0cc344"};
@@ -108,8 +108,8 @@
             var angle = [10, 75, 15, 48, 6, 50, 80, 10, 86, 41,5];
             var start_y = 1;
             for (var i=1 ; i<11; i+=1) {
-                drawCircle(201, start_y, 20, i, angle[i]);
-                start_y = start_y + 20;
+                drawCircle(151, start_y, 15, i, angle[i]);
+                start_y = start_y + 15;
                 }
 
 
@@ -117,9 +117,9 @@
                 for (var j=1 ;j<length; j+=1) {
                     context.beginPath();
                     if (cells[i][j]['id'] !=0) {
-                        var r = Math.floor(cells[i][j]['angle']+50);
+                        var r = Math.floor(cells[i][j]['angle']+15);
                         var g = 10;
-                        var b = Math.floor(cells[i][j]['angle']+30);
+                        var b = Math.floor(cells[i][j]['angle']+60);
                         var color = "rgb(" + r + "," + g + "," + b +")";
                         context.fillStyle = color;
                     }
@@ -194,7 +194,7 @@
                 else if (jp>=length){
                     jp = 1;}
 
-            var sum = Math.cos(cells[ip][j]['angle']*(Math.PI / 180)) +
+            var sum1 = Math.cos(cells[ip][j]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[im][j]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[i][jp]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[i][jm]['angle']*(Math.PI / 180)) +
@@ -203,7 +203,16 @@
                         + Math.cos(cells[im][jp]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[im][jm]['angle']*(Math.PI / 180));
 
-             return((sum/8)/Math.cos(cells[i][j]['angle']));
+             var sum2 = Math.sin(cells[ip][j]['angle']*(Math.PI / 180)) +
+                        + Math.sin(cells[im][j]['angle']*(Math.PI / 180)) +
+                        + Math.sin(cells[i][jp]['angle']*(Math.PI / 180)) +
+                        + Math.sin(cells[i][jm]['angle']*(Math.PI / 180)) +
+                        + Math.sin(cells[ip][jp]['angle']*(Math.PI / 180)) +
+                        + Math.sin(cells[ip][jm]['angle']*(Math.PI / 180)) +
+                        + Math.sin(cells[im][jp]['angle']*(Math.PI / 180)) +
+                        + Math.sin(cells[im][jm]['angle']*(Math.PI / 180));
+
+             return((sum1/8)/Math.cos(cells[i][j]['angle']));
         }
 
         function grow(i,j){
@@ -227,9 +236,9 @@
             for (var i=1 ; i<length; i+=1) {
                 for (var j=1 ;j<length; j+=1) {
                     if (cells[i][j]['id'] !=0) {
-                        var r = Math.floor(cells[i][j]['angle']+60);
+                        var r = Math.floor(cells[i][j]['angle']+15);
                         var g = 10;
-                        var b = Math.floor(cells[i][j]['angle']+30);
+                        var b = Math.floor(cells[i][j]['angle']+60);
                         var color = "rgb(" + r + "," + g + "," + b +")";
                         context.fillStyle = color;
                     }
