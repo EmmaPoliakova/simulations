@@ -85,7 +85,7 @@
     var dt = 0.0002;
     var tau = 0.0003;
     var epsilonbar = 0.01;
-    var k = 2.0;
+    var k = 2.0; // latent heat
     var delta = 0.02;
     var anisotropy = 6.0 ;
     var alpha = 0.9;
@@ -186,6 +186,7 @@
        newFrame();
     }
 
+
     function laplace(){
         for (var i = 0 ; i<size; i+=1){
             for (var j = 0 ; j<size; j+=1){
@@ -239,6 +240,8 @@
 
     }
 
+    // Using the laplacian and evolution functions the algorithm calculates phi value (0,1) of the phase field to determine whether
+    // the material is liquid (φ=0) or solid (φ=1). The solid/liquid interface is expressed with values between 0 and 1.
     function evolution(){
         for (var i = 0 ; i<size; i+=1){
             for (var j = 0 ; j<size; j+=1){
