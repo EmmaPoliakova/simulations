@@ -62,12 +62,13 @@
                             1:"#03eaff" , 2:"#0389ff", 3:"#0335ff", 4:"#4102b5", 5:"#8800ff", 6:"#b700ff",
                             7:"#59ff00", 8:"#16eb02", 9:"#22bf4f", 10:"#00ff51", 11:'#099e40' ,12:'#22bf80' ,
                             13:'#b3ff00' , 14:'#d9ff00' , 15:'#fbff00' , 16:'#ffdd00' , 17:'#ffbf00' , 18:'#ffaa00'};
-        var T = 0.5;
-        var v = 0.8;
+        var T = 0.5; // temperature
+        var k = 1.0; // latent heat
+        var v = 0.8; // velocity
         var noise = 0.5;
         var phi_new;
         var phi_old;
-        var angle = [10, 75, 15, 48, 6, 50, 80, 10, 90, 41,5];
+        var angle = [10, 75, 15, 48, 26, 59, 80, 10, 90, 66,15];
         var selected_angle = 1;
 
 
@@ -140,12 +141,12 @@
         function drawCrystals(){
             var start_y = 1;
             for (var i=1 ; i<11; i+=1) {
-                drawCircle(151, start_y, 15, i, angle[i]);
+                drawCircle(151, start_y, 15, i, angle[i], -1);
                 start_y = start_y + 15;
                 }
         }
 
-        function drawCircle(start_x, start_y, radius, id, angle){
+        function drawCircle(start_x, start_y, diameter, id, angle, direction){
             var row_length = [0, 0, 0, -2, -2, -4, -4, -6, -6, -10];
             var coord_add = [0, 0, 0, 1, 0, 1, 0, 1, 0, 2];
             var coord_x = start_x;
@@ -155,10 +156,10 @@
             if (colour_code<18){
                 colour_code = colour_code +1; }
 
-            for (var i=0 ; i<radius/2; i+=1) {
-                coord_x = coord_x - 1;
+            for (var i=0 ; i<diameter/2; i+=1) {
+                coord_x = coord_x + direction;
                 coord_y = coord_y + coord_add[i];
-                for (var j=0 ; j <radius + row_length[i]; j+=1) {
+                for (var j=0 ; j <diameter + row_length[i]; j+=1) {
                     cells[coord_y + j][coord_x]['id'] = id;
                     cells[coord_y + j][coord_x]['angle'] = angle;
                     cells[coord_y + j][coord_x]['colour'] = colour_code;
@@ -166,6 +167,8 @@
             }
         }
 
+        // In each step a random new angle is generated for each cell in the phase field. The probability is then calculated
+        // which determines if the cell should switch angles. If p>0 then the new angle replaces the old one.
         function probability(i,j){
             phi_new = Math.floor(Math.random() * 90);
             phi_old = cells[i][j]['angle'];
@@ -173,7 +176,7 @@
             cells[i][j]['angle'] = phi_new;
             var Emis_new = mismatchEnergy(i,j);
 
-            var p = (1 - Math.pow( Math.E,((Emis_new - Emis_old)/T + noise)));
+            var p = (1 - Math.pow( Math.E,((Emis_new - Emis_old)/(T*k) + noise)));
             if (p > 0){
                 cells[i][j]['angle'] = phi_new;
                 grow(i,j);
@@ -183,13 +186,17 @@
                 }
         }
 
+
         function mismatchEnergy(x,y){
             var sum = 0;
             var deltaR =0.5;
             for (var k=-1 ; k<2; k+=1) {
                 for (var m=-1 ;m<2; m+=1) {
                     var phi = cells[x+k][y+m]['angle'];
-                    var ni = crystallineOrientation(x+k,y+m);
+                    if (phi<=45){
+                        var ni = crystallineOrientation(x+k,y+m,1);}    // if the current angle is smaller or equal to 45 degrees the ni calculation uses cos.
+                    else{
+                        var ni = crystallineOrientation(x+k,y+m,2);}   // if the current angle is bigger than 45 degrees the ni calculation uses sin.
                     Emis = (1/deltaR) * (1/2) * (v*v) * (ni*ni) * (Math.sin(Math.abs(phi_new - phi)*(Math.PI / 180)) - Math.sin(Math.abs(phi_old - phi)*(Math.PI / 180)));
                     sum = sum + Emis;
                 }
@@ -197,11 +204,13 @@
             return(sum);
         }
 
-        function crystallineOrientation(i,j){
+        // calculation of ni - the order parameter for the degree of crystalline orientation.
+        function crystallineOrientation(i,j, orientation){
                 var jp = j+1;
                 var jm = j-1;
                 var ip = i+1;
                 var im = i-1;
+                var sum =0;
 
                 if (im<=0){
                     im = length-1;}
@@ -212,26 +221,26 @@
                     jm = length-1;}
                 else if (jp>=length){
                     jp = 1;}
-
-            var sum1 = Math.cos(cells[ip][j]['angle']*(Math.PI / 180)) +
+            if (orientation == 1){
+                sum = Math.cos(cells[ip][j]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[im][j]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[i][jp]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[i][jm]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[ip][jp]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[ip][jm]['angle']*(Math.PI / 180)) +
                         + Math.cos(cells[im][jp]['angle']*(Math.PI / 180)) +
-                        + Math.cos(cells[im][jm]['angle']*(Math.PI / 180));
-
-             var sum2 = Math.sin(cells[ip][j]['angle']*(Math.PI / 180)) +
+                        + Math.cos(cells[im][jm]['angle']*(Math.PI / 180));}
+            else{
+                sum = Math.sin(cells[ip][j]['angle']*(Math.PI / 180)) +
                         + Math.sin(cells[im][j]['angle']*(Math.PI / 180)) +
                         + Math.sin(cells[i][jp]['angle']*(Math.PI / 180)) +
                         + Math.sin(cells[i][jm]['angle']*(Math.PI / 180)) +
                         + Math.sin(cells[ip][jp]['angle']*(Math.PI / 180)) +
                         + Math.sin(cells[ip][jm]['angle']*(Math.PI / 180)) +
                         + Math.sin(cells[im][jp]['angle']*(Math.PI / 180)) +
-                        + Math.sin(cells[im][jm]['angle']*(Math.PI / 180));
+                        + Math.sin(cells[im][jm]['angle']*(Math.PI / 180));}
 
-             return((sum1/8)/Math.cos(cells[i][j]['angle']));
+             return((sum/8));
         }
 
         function grow(i,j){
