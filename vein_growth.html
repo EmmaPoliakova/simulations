@@ -1,5 +1,5 @@
 <!-- Author: Emma Poliakova 2020 -->
-<!-- Potts model cellular automata simulation using monte carlo principle and html canvas -->
+<!-- Vein growth simulation using monte carlo principle combined with phase field  -->
 <!DOCTYPE html>
 <html>
     <head>
@@ -31,7 +31,7 @@
         <div class="row1">
             <div class="column">
                 <div>
-                    <canvas id='canvas' width='508' height='508' ></canvas>
+                    <canvas id='canvas' width='508' height='508'  onclick="drawNewAngle(event)" ></canvas>
 
                 </div>
             </div>
@@ -43,6 +43,11 @@
                     <button class="button" id="play" onclick="play()">Play</button>
                     <button class="button" id="stop" onclick="stop()">Stop</button>
                 </div>
+
+                <div class="slidecontainer">
+                    <p id="crystalAngle">Angle: </p>
+                    <input type="range" min="1" max="90" value="1" class="slider" id="myRange">
+                </div>
             </div>
 
     <script>
@@ -53,13 +58,29 @@
         var square_size = 3.34;
         var cells = createArray(size, size);
         var game;
-        var id_type = {0:'black', 1:"#f0e61c" , 2:"#f01c1c", 3:"#1c1cf0", 4:"#28f01c", 5:"#f01ced", 6:"#f57517", 7:"#7413b7", 8:"#f290b4", 9:"#1bfcfc", 10:"#0cc344"};
+        var colour_codes = {0:'black',
+                            1:"#03eaff" , 2:"#0389ff", 3:"#0335ff", 4:"#4102b5", 5:"#8800ff", 6:"#b700ff",
+                            7:"#59ff00", 8:"#16eb02", 9:"#22bf4f", 10:"#00ff51", 11:'#099e40' ,12:'#22bf80' ,
+                            13:'#b3ff00' , 14:'#d9ff00' , 15:'#fbff00' , 16:'#ffdd00' , 17:'#ffbf00' , 18:'#ffaa00'};
         var T = 0.5;
         var v = 0.8;
         var noise = 0.5;
         var phi_new;
         var phi_old;
+        var angle = [10, 75, 15, 48, 6, 50, 80, 10, 90, 41,5];
+        var selected_angle = 1;
 
+
+        var slider = document.getElementById("myRange");
+        slider.oninput = function() {
+            var colour_code = Math.floor(this.value/5);
+            if (colour_code<18){
+                colour_code = colour_code + 1;}
+            colour_code = colour_codes[colour_code];
+            document.getElementById("crystalAngle").style.color = colour_code;
+            document.getElementById("crystalAngle").innerHTML = 'Angle:' + this.value;
+            selected_angle = this.value;
+        }
 
         // canvas frame and initial set up
         function draw() {
@@ -100,35 +121,28 @@
         function setUp(){
             for (var i=0 ;i<size; i+=1) {
                 for (var j=0 ; j<size; j+=1) {
-                    var angle = Math.floor(Math.random() * 91);
-                    cells[i][j] = {'id' : 0, 'angle' : angle} ;
+                    var angle = Math.floor(Math.random() * 90);
+                    cells[i][j] = {'id' : 0, 'angle' : angle, 'colour' : 0} ;
                 }
             }
 
-            var angle = [10, 75, 15, 48, 6, 50, 80, 10, 86, 41,5];
+            drawCrystals();
+
+            for (var i=1 ; i<length; i+=1) {
+                for (var j=1 ;j<length; j+=1) {
+                    context.beginPath();
+                    context.fillStyle = colour_codes[cells[i][j]['colour']];
+                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
+                }
+            }
+        }
+
+        function drawCrystals(){
             var start_y = 1;
             for (var i=1 ; i<11; i+=1) {
                 drawCircle(151, start_y, 15, i, angle[i]);
                 start_y = start_y + 15;
                 }
-
-
-            for (var i=1 ; i<length; i+=1) {
-                for (var j=1 ;j<length; j+=1) {
-                    context.beginPath();
-                    if (cells[i][j]['id'] !=0) {
-                        var r = Math.floor(cells[i][j]['angle']+15);
-                        var g = 10;
-                        var b = Math.floor(cells[i][j]['angle']+60);
-                        var color = "rgb(" + r + "," + g + "," + b +")";
-                        context.fillStyle = color;
-                    }
-                    else {
-                        context.fillStyle = 'black';
-                    }
-                    context.fillRect(i*square_size, j*square_size, square_size, square_size);
-                }
-            }
         }
 
         function drawCircle(start_x, start_y, radius, id, angle){
@@ -136,19 +150,24 @@
             var coord_add = [0, 0, 0, 1, 0, 1, 0, 1, 0, 2];
             var coord_x = start_x;
             var coord_y = start_y;
+
+            var colour_code = Math.floor(angle/5);
+            if (colour_code<18){
+                colour_code = colour_code +1; }
+
             for (var i=0 ; i<radius/2; i+=1) {
                 coord_x = coord_x - 1;
                 coord_y = coord_y + coord_add[i];
                 for (var j=0 ; j <radius + row_length[i]; j+=1) {
                     cells[coord_y + j][coord_x]['id'] = id;
                     cells[coord_y + j][coord_x]['angle'] = angle;
+                    cells[coord_y + j][coord_x]['colour'] = colour_code;
                 }
-
             }
         }
 
         function probability(i,j){
-            phi_new = Math.floor(Math.random() * 91);
+            phi_new = Math.floor(Math.random() * 90);
             phi_old = cells[i][j]['angle'];
             var Emis_old = mismatchEnergy(i,j);
             cells[i][j]['angle'] = phi_new;
@@ -219,32 +238,32 @@
             if (cells[i][j]['id']==0) {
                 if (cells[i+1][j]['id']!=0 && (cells[i+1][j]['angle']-3 < cells[i][j]['angle'] && cells[i+1][j]['angle']+3 > cells[i][j]['angle'])){
                     cells[i][j]['id'] = cells[i+1][j]['id'];
-                    cells[i][j]['angle'] = cells[i+1][j]['angle'];}
+                    cells[i][j]['angle'] = cells[i+1][j]['angle'];
+                    cells[i][j]['colour'] = cells[i+1][j]['colour'];}
                 else if (cells[i+1][j]['id']!=0 && (cells[i+1][j]['angle']-3 < cells[i][j]['angle'] && cells[i+1][j]['angle']+3 > cells[i][j]['angle'])){
                     cells[i][j]['id'] = cells[i+1][j]['id'];
-                    cells[i][j]['angle'] = cells[i+1][j]['angle'];}
+                    cells[i][j]['angle'] = cells[i+1][j]['angle'];
+                    cells[i][j]['colour'] = cells[i+1][j]['colour'];}
                 else if (cells[i][j-1]['id']!=0 && (cells[i][j-1]['angle']-3 < cells[i][j]['angle'] && cells[i][j-1]['angle']+3 > cells[i][j]['angle'])){
                     cells[i][j]['id'] = cells[i][j-1]['id'];
-                    cells[i][j]['angle'] = cells[i][j-1]['angle'];}
+                    cells[i][j]['angle'] = cells[i][j-1]['angle'];
+                    cells[i][j]['colour'] = cells[i][j-1]['colour'];}
                 else if (cells[i][j+1]['id']!=0 && (cells[i][j+1]['angle']-3 < cells[i][j]['angle'] && cells[i][j+1]['angle']+3 > cells[i][j]['angle'])){
                     cells[i][j]['id'] = cells[i][j+1]['id'];
-                    cells[i][j]['angle'] = cells[i][j+1]['angle'];}
+                    cells[i][j]['angle'] = cells[i][j+1]['angle'];
+                    cells[i][j]['colour'] = cells[i][j+1]['colour'];}
                  }
         }
 
         function newFrame(){
             for (var i=1 ; i<length; i+=1) {
                 for (var j=1 ;j<length; j+=1) {
-                    if (cells[i][j]['id'] !=0) {
-                        var r = Math.floor(cells[i][j]['angle']+15);
-                        var g = 10;
-                        var b = Math.floor(cells[i][j]['angle']+60);
-                        var color = "rgb(" + r + "," + g + "," + b +")";
-                        context.fillStyle = color;
-                    }
-                    else {
-                        context.fillStyle = 'black';
-                    }
+                    if (cells[i][j]['id'] ==0 && cells[i+1][j]['id'] !=0 && cells[i-1][j]['id'] !=0 && cells[i][j+1]['id'] !=0 && cells[i][j-1]['id'] !=0){
+                        cells[i][j]['id'] = cells[i-1][j]['id'];
+                        cells[i][j]['angle'] = cells[i-1][j]['angle'];
+                        cells[i][j]['colour'] = cells[i-1][j]['colour'];}
+
+                    context.fillStyle = colour_codes[cells[i][j]['colour']];
                     context.fillRect(i*square_size, j*square_size, square_size, square_size);
                 }
              }
@@ -267,6 +286,16 @@
         function stop(){
             clearInterval(game);
         }
+
+        function drawNewAngle(event) {
+            var x = ~~(event.clientX /3.34);
+            var y = ~~(event.clientY /3.34);
+            if (cells[x][y]['id'] !=0){
+                angle[cells[x][y]['id']] = parseInt(selected_angle);
+                }
+            drawCrystals();
+            newFrame();
+            }
 
 
 
