@@ -123,7 +123,7 @@
             for (var i=0 ;i<size; i+=1) {
                 for (var j=0 ; j<size; j+=1) {
                     var angle = Math.floor(Math.random() * 90);
-                    cells[i][j] = {'id' : 0, 'angle' : angle, 'p' : 0} ;
+                    cells[i][j] = {'id' : 0, 'angle' : angle, 'colour' : 0} ;
                 }
             }
 
@@ -131,15 +131,8 @@
 
             for (var i=1 ; i<length; i+=1) {
                 for (var j=1 ;j<length; j+=1) {
-                     if (cells[i][j]['p'] >=0 ){
-                           var r = Math.floor(cells[i][j]['p']*255);
-                           var g = 10;
-                           var b = Math.floor(cells[i][j]['angle']);
-                           var color = "rgb(" + r + "," + g + "," + b +")";
-                           context.fillStyle = color;
-                           }
-                    else{
-                        context.fillStyle = 'black';}
+                    context.beginPath();
+                    context.fillStyle = colour_codes[cells[i][j]['colour']];
                     context.fillRect(i*square_size, j*square_size, square_size, square_size);
                 }
             }
@@ -159,13 +152,17 @@
             var coord_x = start_x;
             var coord_y = start_y;
 
+            var colour_code = Math.floor(angle/5);
+            if (colour_code<18){
+                colour_code = colour_code +1; }
+
             for (var i=0 ; i<diameter/2; i+=1) {
                 coord_x = coord_x + direction;
                 coord_y = coord_y + coord_add[i];
                 for (var j=0 ; j <diameter + row_length[i]; j+=1) {
                     cells[coord_y + j][coord_x]['id'] = id;
                     cells[coord_y + j][coord_x]['angle'] = angle;
-                    cells[coord_y + j][coord_x]['p'] = 1;
+                    cells[coord_y + j][coord_x]['colour'] = colour_code;
                 }
             }
         }
@@ -180,13 +177,19 @@
             var Emis_new = mismatchEnergy(i,j);
 
             var p = (1 - Math.pow( Math.E,((Emis_new - Emis_old)/(T*k) + noise)));
-            cells[i][j]['p'] = crystallineOrientation(i,j,1);;
+            if (p > 0){
+                cells[i][j]['angle'] = phi_new;
+                grow(i,j);
+            }
+            else{
+                cells[i][j]['angle'] = phi_old;
+                }
         }
 
 
         function mismatchEnergy(x,y){
             var sum = 0;
-            var deltaR =1;
+            var deltaR =0.5;
             for (var k=-1 ; k<2; k+=1) {
                 for (var m=-1 ;m<2; m+=1) {
                     var phi = cells[x+k][y+m]['angle'];
@@ -240,20 +243,36 @@
              return((sum/8));
         }
 
-
+        function grow(i,j){
+            if (cells[i][j]['id']==0) {
+                if (cells[i+1][j]['id']!=0 && (cells[i+1][j]['angle']-3 < cells[i][j]['angle'] && cells[i+1][j]['angle']+3 > cells[i][j]['angle'])){
+                    cells[i][j]['id'] = cells[i+1][j]['id'];
+                    cells[i][j]['angle'] = cells[i+1][j]['angle'];
+                    cells[i][j]['colour'] = cells[i+1][j]['colour'];}
+                else if (cells[i+1][j]['id']!=0 && (cells[i+1][j]['angle']-3 < cells[i][j]['angle'] && cells[i+1][j]['angle']+3 > cells[i][j]['angle'])){
+                    cells[i][j]['id'] = cells[i+1][j]['id'];
+                    cells[i][j]['angle'] = cells[i+1][j]['angle'];
+                    cells[i][j]['colour'] = cells[i+1][j]['colour'];}
+                else if (cells[i][j-1]['id']!=0 && (cells[i][j-1]['angle']-3 < cells[i][j]['angle'] && cells[i][j-1]['angle']+3 > cells[i][j]['angle'])){
+                    cells[i][j]['id'] = cells[i][j-1]['id'];
+                    cells[i][j]['angle'] = cells[i][j-1]['angle'];
+                    cells[i][j]['colour'] = cells[i][j-1]['colour'];}
+                else if (cells[i][j+1]['id']!=0 && (cells[i][j+1]['angle']-3 < cells[i][j]['angle'] && cells[i][j+1]['angle']+3 > cells[i][j]['angle'])){
+                    cells[i][j]['id'] = cells[i][j+1]['id'];
+                    cells[i][j]['angle'] = cells[i][j+1]['angle'];
+                    cells[i][j]['colour'] = cells[i][j+1]['colour'];}
+                 }
+        }
 
         function newFrame(){
             for (var i=1 ; i<length; i+=1) {
                 for (var j=1 ;j<length; j+=1) {
-                    if (cells[i][j]['p'] >=0 ){
-                       var r = Math.floor(cells[i][j]['p']*255);
-                       var g = 10;
-                       var b =  Math.floor(cells[i][j]['angle']*255);
-                       var color = "rgb(" + r + "," + g + "," + b +")";
-                       context.fillStyle = color;
-                       }
-                    else{
-                        context.fillStyle = 'black';}
+                    if (cells[i][j]['id'] ==0 && cells[i+1][j]['id'] !=0 && cells[i-1][j]['id'] !=0 && cells[i][j+1]['id'] !=0 && cells[i][j-1]['id'] !=0){
+                        cells[i][j]['id'] = cells[i-1][j]['id'];
+                        cells[i][j]['angle'] = cells[i-1][j]['angle'];
+                        cells[i][j]['colour'] = cells[i-1][j]['colour'];}
+
+                    context.fillStyle = colour_codes[cells[i][j]['colour']];
                     context.fillRect(i*square_size, j*square_size, square_size, square_size);
                 }
              }
@@ -262,7 +281,8 @@
        function step(){
             for (var i=1 ; i<length; i+=1) {
                 for (var j=1 ;j<length; j+=1) {
-                    probability(i,j);
+                    if (cells[i][j]['id']==0){
+                    probability(i,j);}
                 }
             }
             newFrame();
